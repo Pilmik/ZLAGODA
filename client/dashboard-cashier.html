@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zlagoda | Панель касира</title>
-  <link rel="stylesheet" href="dashboard.cashier.css" />
+  <link rel="stylesheet" href="./styles/dashboard.cashier.css" />
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css">
 </head>
 <body>
@@ -41,4 +41,16 @@
   </main>
 
 </body>
+<script>
+  const token = localStorage.getItem("token");
+  if (!token){
+    window.location.href = "/"
+  }
+  const payload = JSON.parse(atob(token.split(".")[1]))
+  if (payload.roles !== "CASHIER") {
+    alert("Доступ не надано.")
+    window.location.href = "/"
+  }
+
+</script>
 </html>

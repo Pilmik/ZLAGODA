@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zlagoda | Панель менеджера</title>
-  <link rel="stylesheet" href="dashboard.manager.css" />
+  <link rel="stylesheet" href="./styles/dashboard.manager.css" />
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css">
 </head>
 <body>
@@ -51,6 +51,17 @@
       </div>
     </div>
   </main>
-
 </body>
+<script>
+  const token = localStorage.getItem("token");
+  if (!token){
+    window.location.href = "/"
+  }
+  const payload = JSON.parse(atob(token.split(".")[1]))
+  if (payload.roles !== "MANAGER") {
+    alert("Доступ не надано.")
+    window.location.href = "/"
+  }
+
+</script>
 </html>

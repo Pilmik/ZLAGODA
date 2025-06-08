@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zlagoda | Вхід</title>
-  <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" href="./styles/login.css">
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
 </head>
 <body>
   <div class="login-container">
-    <form class="login-form">
+    <form id="login-form">
       <h2>Вхід до системи</h2>
 
       <div class="form-group">
@@ -23,8 +23,9 @@
       </div>
 
       <button type="submit" class="login-btn">Увійти</button>
-
+      <p class="error" id="error-message"></p>
     </form>
   </div>
 </body>
+<script src="login.js"></script>
 </html>
