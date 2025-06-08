@@ -1,31 +1,25 @@
 const express = require("express");
-const cors = require("cors")
+const cors = require("cors");
 require("dotenv").config();
-const path = require("path")
 const {pool, initializeDatabase} = require("./server/models/db.js");
 const authRoutes = require("./server/employee_routes/auth_routes.js");
+const managerDashboardRoutes = require("./server/employee_routes/manager_routes.js");
+const cashierDashboardRoutes = require("./server/employee_routes/cashier_routes.js");
 
 const app = express();
 const PORT = process.env.PORT || 3000
-const clientPath = path.join(__dirname, "./client")
+const clientPath = process.env.CLIENT_PATH
 
 app.use(express.static(clientPath));
-app.use(express.json())
+app.use(express.json());
 app.use(cors());
-app.use("/auth", authRoutes)
+app.use("/auth", authRoutes);
+app.use("/dashboard-manager", managerDashboardRoutes);
+app.use("/dashboard-cashier", cashierDashboardRoutes);
 
 app.get("/", (req, res) => {
     res.sendFile('login.html', {root: clientPath})
 })
-
-app.get("/dashboard-manager", (req, res) => {
-  console.log("From endploint /dashb-manager")
-  res.sendFile('dashboard-manager.html', { root: clientPath});
-});
-
-app.get("/dashboard-cashier", (req, res) => {
-  res.sendFile('dashboard-cashier.html', { root: clientPath});
-});
 
 const start = async () => {
     try {
