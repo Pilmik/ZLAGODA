@@ -1,5 +1,5 @@
 const Router = require("express");
-const controller = require("../employee_controller/cashier_controller.js")
+const controller = require("../employee_controllers/cashier_controller.js")
 
 const router = new Router();
 

@@ -38,9 +38,9 @@ const start = async () => {
             });
         });
     } catch (e) {
-        console.log(e)
-        await pool.end()
-        process.exit(1)
+        console.error("Помилка запуску сервера:", e.stack);
+        await pool.end();
+        process.exit(1);
     }
 };
 

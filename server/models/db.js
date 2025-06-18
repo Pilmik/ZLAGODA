@@ -3,11 +3,15 @@ const bcrypt = require("bcrypt");
 require("dotenv").config;
 
 const pool = new Pool({
-    user: "postgres",
-    password: "1234",
-    host: "localhost",
-    port: "5000",
-    database: "zlagoda"
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME
+})
+
+pool.on('error', (err) => {
+    console.error("Помилка пулу з'єднань", e.stack)
 })
 
 const initializeDatabase = async () => {
@@ -40,7 +44,8 @@ const initializeDatabase = async () => {
         console.log("Адміністратор із id = 0 уже існує");
         }
     } catch (e) {
-        console.log(e)
+        console.error("Помилка ініціалізації бази даних:", e.stack);
+        throw e;
     }
 }
 
