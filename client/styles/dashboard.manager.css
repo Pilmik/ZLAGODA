@@ -98,6 +98,8 @@ body {
   margin-left: 260px;
   padding: 40px;
   box-sizing: border-box;
+  background-color: #f8f9fb;
+  min-height: 100vh;
 }
 
 .dashboard-wrapper {
@@ -123,4 +125,399 @@ body {
   font-weight: 500;
   color: #132144;
   text-align: center;
+}
+
+/* Employee Section Styles */
+.employee-panel {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.employee-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.employee-count {
+  font-size: 20px;
+  font-weight: 600;
+  color: #132144;
+  margin: 0;
+}
+
+.employee-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.employee-search {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  min-width: 200px;
+}
+
+.employee-search-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: #132144;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.employee-search-btn:hover {
+  background-color: #1c2e66;
+}
+
+.employee-cashier-only {
+  font-size: 15px;
+  color: #444;
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  text-align: left;
+}
+
+.employee-table th,
+.employee-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.employee-table th {
+  background-color: #132144;
+  color: white;
+}
+
+.employee-table tr:hover {
+  background-color: #f0f4fa;
+}
+
+.details-btn {
+  background-color: #132144;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.employee-pagination {
+  text-align: center;
+  font-size: 14px;
+  color: #444;
+}
+
+.employee-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.employee-report-btn {
+  background-color: #d9e7f3;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.employee-new-btn {
+  background-color: #9ad0b2;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.2s ease;
+}
+
+.modal h2 {
+  margin-top: 0;
+  color: #132144;
+  font-size: 20px;
+}
+
+.modal-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.modal-list li strong {
+  display: inline-block;
+  width: 140px;
+  color: #132144;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end; /* ✅ тепер обидві кнопки з правого краю */
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-filled {
+  background-color: #9ad0b2;
+  color: #132144;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-outline {
+  background-color: #f8d7da;
+  color: #132144;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 24px;
+  color: #132144;
+  cursor: pointer;
+  font-weight: bold;
+  transition: opacity 0.2s ease;
+}
+
+.modal-close:hover {
+  opacity: 0.6;
+}
+.modal {
+  position: relative;
+}
+
+.employee-search-btn:hover {
+  background-color: #1c2e66;
+}
+
+.employee-report-btn:hover {
+  background-color: #c6dcef;
+}
+
+.employee-new-btn:hover {
+  background-color: #87c9a5;
+}
+
+.btn-filled:hover {
+  background-color: #85c8a3;
+}
+
+.btn-outline:hover {
+  background-color: #f3c6cc;
+}
+
+.details-btn:hover {
+  background-color: #1c2e66;
+}
+
+.modal-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 20px;
+  margin-top: 20px;
+}
+
+.modal-form .modal-actions {
+  grid-column: span 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #132144;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.employee-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.pagination-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #132144;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.pagination-btn:hover {
+  background-color: #1c2e66;
+}
+
+.pagination-info {
+  color: #132144;
+  font-weight: 500;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: #132144;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-switch .slider {
+  position: relative;
+  width: 46px;
+  height: 24px;
+  background-color: #ccc;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-switch .slider::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  height: 20px;
+  width: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .slider {
+  background-color: #132144;
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(22px);
+}
+
+.toggle-switch .label-text {
+  user-select: none;
+}
+
+/* ======= Модалка звіту ======= */
+.report-modal .modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.report-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-modal .form-group label {
+  font-size: 14px;
+  color: #132144;
+}
+
+.report-modal .form-group input[type="date"] {
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.report-modal .toggle-switch {
+  margin-top: 10px;
+}
+
+.report-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.toggle-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  color: #132144;
+  grid-column: span 2;
+}
+
+.employee-table tr.highlight {
+  background-color: #dbf8da !important; 
+  font-weight: 600;
 }
