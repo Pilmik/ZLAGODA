@@ -1,6 +1,7 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const {pool} = require("../models/db.js");
+const {generateDisplayId} = require("../utils/idGenerator.js")
 
 class ManagerController{
     async openDashboard(req, res){
@@ -15,14 +16,15 @@ class ManagerController{
         }
         try{
             let query = `
-            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
+            SELECT internal_id, display_id, empl_surname, empl_name, empl_patronymic,
                 empl_role, salary, date_of_birth, date_of_start, 
-                phone_number, city, street, zip_code
+                phone_number, city, street, zip_code, fired
             FROM employee
+            WHERE fired = FALSE
             `;
             const value = [];
             if (role) {
-                query += ' WHERE empl_role = $1';
+                query += ' AND empl_role = $1';
                 value.push(role)
             }
             query += " ORDER BY empl_surname ASC;"
@@ -41,7 +43,7 @@ class ManagerController{
         }
         try{
             const employees = await pool.query(`
-            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
+            SELECT internal_id, display_id, empl_surname, empl_name, empl_patronymic,
                 empl_role, salary, date_of_birth, date_of_start, 
                 phone_number, city, street, zip_code
             FROM employee
@@ -62,11 +64,11 @@ class ManagerController{
         }
         try{
             const employee = await pool.query(`
-            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
+            SELECT internal_id, display_id, empl_surname, empl_name, empl_patronymic,
                 empl_role, salary, date_of_birth, date_of_start, 
                 phone_number, city, street, zip_code
             FROM employee
-            WHERE id_employee = $1;
+            WHERE display_id = $1;
             `, [id])
             return res.json(employee.rows)
         }catch(e){
@@ -78,7 +80,6 @@ class ManagerController{
     async createEmployee(req, res){
         try{
             const {
-                id_employee,
                 empl_surname,
                 empl_name,
                 empl_patronymic,
@@ -93,7 +94,7 @@ class ManagerController{
                 empl_password
             } = req.body;
             console.log(req.body)
-            if (!id_employee || !empl_surname || !empl_name || !empl_role || !salary 
+            if (!empl_surname || !empl_name || !empl_role || !salary 
                 || !date_of_birth || !date_of_start || !phone_number || !city || !street 
                 || !zip_code || !empl_password) {
                 return res.status(400).json({ message: "Усі обов’язкові поля повинні бути заповнені" });
@@ -105,22 +106,24 @@ class ManagerController{
                 || (ageAtStart === 18 && birthDate.getMonth() === startDate.getMonth() && birthDate.getDate() > startDate.getDate())) {
                 return res.status(400).json({ message: "Працівник повинен бути старше 18 років на момент вступу на посаду" });
             }
+            const displayID = await generateDisplayId(empl_role);
             const hashedPassword = await bcrypt.hash(empl_password, 12);
             const { rowCount } = await pool.query(`
             INSERT INTO employee (
-                id_employee, empl_surname, empl_name, empl_patronymic,
+                display_id, empl_surname, empl_name, empl_patronymic,
                 empl_role, salary, date_of_birth, date_of_start, 
                 phone_number, city, street, zip_code, empl_password
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-            ON CONFLICT (id_employee) DO NOTHING`, [
-            id_employee, empl_surname, empl_name, empl_patronymic, empl_role,
+            ON CONFLICT (display_id) DO NOTHING;`, [
+            displayID, empl_surname, empl_name, empl_patronymic, empl_role,
             salary, date_of_birth, date_of_start, phone_number,
             city, street, zip_code, hashedPassword]);
             if (rowCount > 0) {
-                return res.status(200).json({message: "Користувача створено в системі: " + id_employee})
+                return res.status(200).json({message: "Користувача створено в системі: " + displayID})
             } else {
-            console.log("Помилка створення користувача.");
+                console.log("Помилка створення користувача.");
+                return res.status(400).json({ message: "Помилка створення користувача" });
             }
 
         }catch (e){
@@ -131,12 +134,12 @@ class ManagerController{
 
     async updateEmployeeInfo(req, res){
         const updatedEmployee = req.body;
-        if (!updatedEmployee.id_employee){
+        if (!updatedEmployee.display_id){
             res.status(400).json({message: "ID не вказано."})
         }
         try{
             const {
-            id_employee, 
+            display_id, 
             empl_surname, 
             empl_name,
             empl_patronymic,
@@ -162,14 +165,14 @@ class ManagerController{
                         city = $8,
                         street = $9, 
                         zip_code = $10
-                    WHERE id_employee = $11
+                    WHERE display_id = $11
                     RETURNING *;
                 `, [empl_surname, empl_name,
                     empl_patronymic || null, salary,
                     date_of_birth, date_of_start,
                     phone_number, city,
                     street, zip_code,
-                    id_employee])
+                    display_id])
             if (result.rows.length === 0){
                 return res.status(400).json({message: "Помилка оновлення користувача"})
             }
@@ -181,20 +184,20 @@ class ManagerController{
     }
 
     async deleteEmployee(req, res){
-        const id_employee = req.params.id;
-        if (!id_employee){
+        const display_id = req.params.id;
+        if (!display_id){
             return res.status(400).json({message: "Відсутнє ID."})
         }
         try{
             const result = await pool.query(`
                 DELETE FROM employee
-                WHERE id_employee = $1
+                WHERE display_id = $1
                 RETURNING *;
-            `, [id_employee])
+            `, [display_id])
             if (result.rows.length === 0){
                 return res.status(400).json({message: "Помилка видалення."})
             }
-        return res.json({message: "Користувача " + id_employee + " успішно видалено."})
+        return res.json({message: "Користувача " + display_id + " успішно видалено."})
         }catch(e){
             console.error("Помилка: " + e)
             return res.status(500).json({message: "Помилка сервера."})
