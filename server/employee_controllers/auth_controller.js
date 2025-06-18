@@ -19,7 +19,7 @@ class AuthController{
             const userResult = await pool.query(`
                 SELECT * 
                 FROM employee 
-                WHERE id_employee = $1`, [id])
+                WHERE display_id = $1`, [id])
 
             if (userResult.rows.length === 0) {
                 return res.status(400).json({ message: "Користувача з таким ID не знайдено" });
@@ -32,7 +32,7 @@ class AuthController{
             if (!valid_password) {
                 return res.status(400).json({ message: "Неправильний пароль" });
             }
-            const token = generateAccessToken(user.id_employee, user.empl_role)
+            const token = generateAccessToken(user.display_id, user.empl_role)
             return res.json({token})
         } catch (e) {
             console.log(e)

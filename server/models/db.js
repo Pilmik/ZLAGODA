@@ -1,6 +1,6 @@
 const Pool = require("pg").Pool;
 const bcrypt = require("bcrypt");
-require("dotenv").config;
+require("dotenv").config();
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -11,13 +11,13 @@ const pool = new Pool({
 })
 
 pool.on('error', (err) => {
-    console.error("Помилка пулу з'єднань", e.stack)
+    console.error("Помилка пулу з'єднань", err.stack)
 })
 
 const initializeDatabase = async () => {
     try {
         const {
-            MANAGER_ID, MANAGER_SURNAME, MANAGER_NAME, MANAGER_PATRONYMIC,
+            MANAGER_DISPLAY_ID, MANAGER_SURNAME, MANAGER_NAME, MANAGER_PATRONYMIC,
             MANAGER_ROLE, MANAGER_SALARY, MANAGER_DATE_OF_BIRTH, MANAGER_DATE_OF_START,
             MANAGER_PHONE_NUMBER, MANAGER_CITY, MANAGER_STREET, MANAGER_ZIP_CODE,
             MANAGER_PASSWORD
@@ -25,14 +25,14 @@ const initializeDatabase = async () => {
         const hashedPassword = await bcrypt.hash(MANAGER_PASSWORD, 12);
         const { rowCount } = await pool.query(`
             INSERT INTO employee (
-                id_employee, empl_surname, empl_name, empl_patronymic,
+                display_id, empl_surname, empl_name, empl_patronymic,
                 empl_role, salary, date_of_birth, date_of_start, 
                 phone_number, city, street, zip_code, empl_password
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-            ON CONFLICT (id_employee) DO NOTHING
+            ON CONFLICT (display_id) DO NOTHING
         `, [
-            MANAGER_ID, MANAGER_SURNAME, MANAGER_NAME, MANAGER_PATRONYMIC,
+            MANAGER_DISPLAY_ID, MANAGER_SURNAME, MANAGER_NAME, MANAGER_PATRONYMIC,
             MANAGER_ROLE, MANAGER_SALARY, MANAGER_DATE_OF_BIRTH, MANAGER_DATE_OF_START,
             MANAGER_PHONE_NUMBER, MANAGER_CITY, MANAGER_STREET, MANAGER_ZIP_CODE,
             hashedPassword
