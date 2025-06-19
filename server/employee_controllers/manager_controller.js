@@ -374,6 +374,157 @@ class ManagerController{
             return res.status(500).json({ message: "Помилка сервера." });
         }
     }
+
+    async getAllCategories(req, res) {
+        const name = req.query.name;
+        
+        let query = `SELECT * FROM Category`;
+        const params = [];
+
+        if (name && name.trim() !== '') {
+            query += ` WHERE category_name ILIKE $1
+                       ORDER BY category_name ASC`;
+            params.push(`%${name.trim()}%`);
+        } else {
+            query += ` ORDER BY category_name ASC`;
+        }
+        try {
+            const categories = await pool.query(query, params);
+            return res.status(200).json(categories.rows);
+        } catch (err) {
+            console.error("Помилка отримання категорій:", err.stack);
+            return res.status(500).json({ message: "Помилка сервера." });
+        }
+    }
+
+    async getCategoryById(req, res) {
+        const id = req.params.id;
+
+        if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+            return res.status(400).json({ message: "Некоректний ID категорії" });
+        }
+
+        try {
+            const query = `
+                SELECT * FROM Category
+                WHERE category_number = $1;
+            `
+            const category = await pool.query(query, [id]);
+
+            if (category.rowCount === 0) {
+                return res.status(400).json({ message: "Категорію не знайдено" });
+            }
+            return res.status(200).json(category.rows[0])
+        } catch (err) {
+            console.error("Помилка отримання категорії: ", err.stack);
+            return res.status(500).json({ message: "Помилка сервера" });
+        }
+    }
+
+    async createCategory(req, res) {
+        const {category_name} = req.body;
+
+        if (!category_name || category_name.trim().length === 0) {
+            return res.status(400).json({message: "Назва категорії обов'язкова"});
+        }
+
+        if (category_name.trim().length > 50) {
+            return res.status(400).json({message: "Перевищення 50-ти симолів"});
+        }
+
+        try {
+            const query = `
+                INSERT INTO Category (category_name)
+                VALUES ($1)
+                ON CONFLICT (category_name) DO NOTHING
+                RETURNING *;
+            `
+            const result = await pool.query(query, [category_name.trim()]);
+
+            if (result.rowCount === 0) {
+                return res.status(400).json({message: "Існує категорія з такою назвою"});
+            }
+
+            return res.status(200).json({
+                message: "Категорію успішно створено",
+                category: result.rows[0]
+            });
+        } catch (err) {
+            console.error("Помилка створення категорії:", err.stack);
+            return res.status(500).json({ message: "Помилка сервера." }); 
+        }
+    }
+
+    async updateCategory(req, res) {
+        const {category_number, category_name} = req.body;
+
+        if (!Number.isInteger(Number(category_number)) || Number(category_number) <= 0) {
+            return res.status(400).json({ message: "Некоректний ID категорії" });
+        }
+
+        if (!category_name || category_name.trim().length === 0) {
+            return res.status(400).json({ message: "Назва категорії є обов’язковою" });
+        }
+
+        if (category_name.trim().length > 50) {
+            return res.status(400).json({ message: "Назва категорії не може перевищувати 50 символів" });
+        }
+
+        try {
+            const checkUnique = `
+                SELECT * FROM Category
+                WHERE category_name = $1 AND category_number <> $2;
+            `;
+            const unique = await pool.query(checkUnique, [category_name.trim(), category_number]);
+            if (unique.rowCount !== 0) {
+                return res.status(400).json({ message: "Категорія з такою назвою вже існує." });
+            }
+            const query = `
+                UPDATE Category
+                SET category_name = $1
+                WHERE category_number = $2
+                RETURNING *;
+            `;
+            const result = await pool.query(query, [category_name.trim(), category_number]);
+
+            if (result.rowCount === 0) {
+                return res.status(400).json({ message: "Категорію не знайдено" });
+            }
+
+            return res.status(200).json({
+                message: "Категорію успішно оновлено.",
+                category: result.rows[0]
+            });
+        } catch (err) {
+            console.error("Помилка оновлення категорії: ", err.stack);
+            return res.status(500).json({ message: "Помилка сервера" });
+        }
+    }
+
+    async deleteCategory(req, res) {
+        const id = req.params.id;
+
+        if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+            return res.status(400).json({ message: "Некоректний ID категорії" });
+        }
+
+        try {
+            const query = `
+                DELETE FROM Category
+                WHERE category_number = $1
+                RETURNING category_number;
+            `
+            const result = pool.query(query, [id]);
+            if (result.rowCount === 0) {
+                return res.status(400).json({ message: "Категорію не знайдено" });
+            }
+
+            return res.status(200).json({ message: "Категорію успішно видалено" });
+        } catch (err) {
+            console.error("Помилка видалення категорії:", err.stack);
+            return res.status(500).json({ message: "Помилка сервера" });
+        }
+    }
 }
 
 module.exports = new ManagerController();

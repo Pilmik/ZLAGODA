@@ -20,4 +20,10 @@ router.post("/customers", authMiddleware, roleMiddleware(["MANAGER"]), controlle
 router.put("/customers", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateCustomerInfo)
 router.delete("/customers/:number", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteCustomer)
 
+router.get("/category", authMiddleware, roleMiddleware(["MANAGER"]), controller.getAllCategories)
+router.get("/category/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.getCategoryById)
+router.post("/category", authMiddleware, roleMiddleware(["MANAGER"]), controller.createCategory)
+router.put("/category", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateCategory)
+router.delete("/category/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteCategory)
+
 module.exports = router;
