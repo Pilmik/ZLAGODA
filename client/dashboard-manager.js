@@ -16,25 +16,143 @@ let currentEditingId = null;
 // Поточний обʼєкт працівника для перегляду
 let currentEmployee = null;
 
-// ===================== DOMContentLoaded =====================
+let token = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Перевірка JWT-токена та ролі
-  const token = localStorage.getItem("token");
-  if (!token) return (window.location.href = "/");
-  const payload = JSON.parse(atob(token.split(".")[1]));
-  if (payload.roles !== "MANAGER") {
-    alert("Доступ не надано.");
-    return (window.location.href = "/");
-  }
+// ===================== DOMContentLoaded =====================
+  document.addEventListener("DOMContentLoaded", () => {
+    token = localStorage.getItem("token");
+    if (!token) return (window.location.href = "/");
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (payload.roles !== "MANAGER") {
+      alert("Доступ не надано.");
+      return (window.location.href = "/");
+    }
+
+    document.querySelector(".client-search").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.querySelector(".client-search-btn").click();
+    }
+  });
+
+  // === ВІДКРИТТЯ/ЗАКРИТТЯ модалки клієнтського звіту ===
+  document.querySelector(".client-report-btn").addEventListener("click", () => {
+    document.getElementById("clientReportModal").style.display = "flex";
+  });
+  document.getElementById("closeClientReportModal").addEventListener("click", () => {
+    document.getElementById("clientReportModal").style.display = "none";
+  });
+  document.getElementById("cancelClientReport").addEventListener("click", () => {
+    document.getElementById("clientReportModal").style.display = "none";
+  });
+  document.getElementById("clientReportModal").addEventListener("click", (e) => {
+    if (e.target.id === "clientReportModal") {
+      document.getElementById("clientReportModal").style.display = "none";
+    }
+  });
+
+  // === Submit звіту клієнтів ===
+  document.getElementById("clientReportForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const start = e.target.start_date.value;
+    const end = e.target.end_date.value;
+    const f3 = e.target.filter_3.checked;
+    const f5 = e.target.filter_5.checked;
+    const f8 = e.target.filter_8.checked;
+
+    const selected = [];
+    if (f3) selected.push(3);
+    if (f5) selected.push(5);
+    if (f8) selected.push(8);
+
+    const filter = selected.length > 0 ? `&filter=${selected.join(",")}` : "";
+
+    window.open(`/dashboard-manager/clients-report?start=${start}&end=${end}${filter}`, "_blank");
+  });
 
   // DOM-посилання
   const cashierOnlyToggle = document.getElementById("cashierOnlyToggle");
   const searchBtn = document.querySelector(".employee-search-btn");
   const searchInput = document.querySelector(".employee-search");
 
+  const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("token");
+        window.location.href = "login.html";
+      });
+    }
+
   // Першочергове завантаження працівників
   fetchEmployees();
+
+    // === Новий клієнт: відкриття модалки ===
+    document.querySelector(".client-new-btn").addEventListener("click", () => {
+    document.getElementById("clientModalTitle").textContent = "Новий клієнт";
+    document.getElementById("addClientModal").style.display = "flex";
+  });
+    document.querySelector("#addClientModal form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const raw = {
+      card_number: currentEditingId,
+      cust_surname: formData.get("cust_surname"),
+      cust_name: formData.get("cust_name"),
+      cust_patronymic: formData.get("cust_patronymic"),
+      phone_number: formData.get("phone_number"),
+      city: formData.get("city"),
+      street: formData.get("street"),
+      zip_code: formData.get("zip_code"),
+      percent: Number(formData.get("percent")),
+    };
+
+      const method = isEditMode ? "PUT" : "POST";
+      const url = `/dashboard-manager/customers`;
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(raw),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(data.message || (isEditMode ? "Клієнта оновлено." : "Клієнта додано."));
+        form.reset();
+        document.getElementById("addClientModal").style.display = "none";
+        fetchClients();
+        isEditMode = false;
+        currentEditingId = null;
+        document.querySelector("#clientModalTitle").textContent = "Новий клієнт";
+        document.querySelector("#submitClientBtn").textContent = "Додати";
+      } else {
+        alert(data.message || "Помилка");
+      }
+  });
+
+  // === Закриття кнопкою або overlay ===
+  document.getElementById("cancelAddClient").addEventListener("click", () => {
+    document.querySelector("#addClientModal form").reset();
+    document.getElementById("addClientModal").style.display = "none";
+  });
+
+  document.getElementById("closeAddClientModal").addEventListener("click", () => {
+    document.querySelector("#addClientModal form").reset();
+    document.getElementById("addClientModal").style.display = "none";
+  });
+
+  document.getElementById("addClientModal").addEventListener("click", (e) => {
+    if (e.target.id === "addClientModal") {
+      document.querySelector("#addClientModal form").reset();
+      document.getElementById("addClientModal").style.display = "none";
+    }
+  });
 
   // Перемикач для фільтрації лише касирів
   cashierOnlyToggle.addEventListener("change", (e) => {
@@ -130,12 +248,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Кнопка "Додати працівника" — ініціалізує модалку
   document.querySelector(".employee-new-btn").addEventListener("click", () => {
-    document.querySelector("#addEmployeeModal h2").textContent = "Новий працівник";
-    document.querySelector("#addEmployeeModal .btn-filled").textContent = "Додати";
-    isEditMode = false;
-    currentEditingId = null;
-    document.getElementById("addEmployeeModal").style.display = "flex";
-  });
+  const passwordInput = document.getElementById("passwordField");
+  passwordInput.disabled = false;
+  passwordInput.style.backgroundColor = "";
+  passwordInput.style.cursor = "text";
+  
+  document.querySelector("#addEmployeeModal h2").textContent = "Новий працівник";
+  document.querySelector("#addEmployeeModal .btn-filled").textContent = "Додати";
+  isEditMode = false;
+  currentEditingId = null;
+  document.getElementById("addEmployeeModal").style.display = "flex";
+});
 
   // Закриття модалки по кліку на overlay — лише в режимі створення
   const addModal = document.getElementById("addEmployeeModal");
@@ -186,11 +309,17 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       links.forEach(l => l.classList.remove("active"));
       link.classList.add("active");
+
       const section = link.getAttribute("data-section");
       const allSections = dashboardContent.querySelectorAll("div[id]");
       allSections.forEach(div => div.style.display = "none");
       const activeSection = document.getElementById(section);
-      if (activeSection) activeSection.style.display = "block";
+      if (activeSection) {
+        activeSection.style.display = "block";
+        if (section === "clients") {
+          fetchClients();
+        }
+      }
     });
   });
 });
@@ -209,6 +338,52 @@ async function fetchEmployees(cashiersOnly = false) {
   const data = await res.json();
   renderEmployeeTable(data);
 }
+
+// Клієнти — кнопки фільтра
+document.querySelectorAll(".discount-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("active"); // вмикає або вимикає цю кнопку
+    fetchClients(); // перезапускає фільтрацію
+  });
+});
+
+// Отримання списку клієнтів із фільтрацією
+async function fetchClients() {
+  const token = localStorage.getItem("token");
+  const selected = [];
+
+  if (document.querySelector('.discount-btn[data-value="3"]')?.classList.contains('active')) selected.push(3);
+  if (document.querySelector('.discount-btn[data-value="5"]')?.classList.contains('active')) selected.push(5);
+  if (document.querySelector('.discount-btn[data-value="8"]')?.classList.contains('active')) selected.push(8);
+
+  const query = selected.length > 0 ? `?percent=${selected.join(",")}` : "";
+
+  try {
+    const res = await fetch(`/dashboard-manager/customers${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) throw new Error("Помилка запиту");
+
+    const data = await res.json();
+    renderClientTable(data);
+  } catch (err) {
+    console.error("Помилка отримання клієнтів:", err.message);
+    renderClientTable([]);
+  }
+}
+
+// Пошук клієнта за номером
+document.querySelector(".client-search-btn").addEventListener("click", async () => {
+  const number = document.querySelector(".client-search").value.trim();
+  if (!number) return fetchClients();
+  const res = await fetch(`/dashboard-manager/customers/${number}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (res.ok) renderClientTable([data]);
+  else alert(data.message || "Не знайдено");
+});
 
 // Вивід працівників у таблицю
 function renderEmployeeTable(data) {
@@ -234,6 +409,99 @@ function renderEmployeeTable(data) {
   document.querySelector(".employee-count").textContent = `Усього знайдено: ${data.length}`;
 }
 
+// Вивід клієнтів у таблицю
+function renderClientTable(clients) {
+  const tbody = document.querySelector(".client-table tbody");
+  const count = document.querySelector(".clients-count");
+  tbody.innerHTML = "";
+
+  clients.forEach(client => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${client.card_number || "***"}</td>
+      <td>${client.cust_surname}</td>
+      <td>${client.cust_name}</td>
+      <td>${client.percent}</td>
+    `;
+    row.addEventListener("click", () => openClientModal(client));
+    tbody.appendChild(row);
+  });
+
+  count.textContent = `Усього знайдено: ${clients.length}`;
+}
+
+// Відкриття модального вікна з деталями клієнта
+function openClientModal(client) {
+  const modal = document.getElementById("clientModal");
+  const shortenedId = client.card_number?.split("-")[3] || "***";
+  modal.querySelector("h2").innerHTML = `CARD ID: ${shortenedId}`;
+  const list = modal.querySelector(".modal-list");
+  list.innerHTML = `
+    <li><strong>Ім'я:</strong> ${client.cust_name}</li>
+    <li><strong>Прізвище:</strong> ${client.cust_surname}</li>
+    <li><strong>По-батькові:</strong> ${client.cust_patronymic || "-"}</li>
+    <li><strong>Номер телефону:</strong> ${client.phone_number}</li>
+    <li><strong>Місто:</strong> ${client.city || "-"}</li>
+    <li><strong>Вулиця:</strong> ${client.street || "-"}</li>
+    <li><strong>Індекс:</strong> ${client.zip_code || "-"}</li>
+    <li><strong>Знижка %:</strong> ${client.percent}</li>
+  `;
+
+  modal.style.display = "flex";
+  currentClient = client;
+
+  document.getElementById("deleteClient").onclick = () => deleteClient(client.card_number);
+  document.getElementById("editClient").onclick = () => {
+    const form = document.querySelector("#addClientModal form");
+    document.querySelector("#clientModalTitle").textContent = `Редагування: ${shortenedId}`;
+    document.querySelector("#submitClientBtn").textContent = "Готово";
+    isEditMode = true;
+    currentEditingId = client.card_number;
+
+    form.card_number.value = client.card_number;
+    form.cust_surname.value = client.cust_surname;
+    form.cust_name.value = client.cust_name;
+    form.cust_patronymic.value = client.cust_patronymic || "";
+    form.phone_number.value = client.phone_number;
+    form.city.value = client.city || "";
+    form.street.value = client.street || "";
+    form.zip_code.value = client.zip_code || "";
+    form.percent.value = client.percent;
+
+    modal.style.display = "none";
+    document.getElementById("addClientModal").style.display = "flex";
+  };
+}
+
+// Закриття модалки клієнта
+document.getElementById("closeClientModal").addEventListener("click", () => {
+  document.getElementById("clientModal").style.display = "none";
+});
+document.getElementById("clientModal").addEventListener("click", (e) => {
+  if (e.target.id === "clientModal") {
+    document.getElementById("clientModal").style.display = "none";
+  }
+});
+
+// Видалення клієнта
+async function deleteClient(card_number) {
+  if (!confirm(`Ви дійсно хочете видалити клієнта ${card_number}?`)) return;
+  const res = await fetch(`/dashboard-manager/customers/${card_number}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+
+  if (res.ok) {
+    alert("Клієнта видалено.");
+    document.getElementById("clientModal").style.display = "none";
+    fetchClients();
+  } else {
+    const err = await res.json();
+    alert(err.message || "Помилка при видаленні клієнта.");
+  }
+}
+
+
 // Відкриття модального вікна з деталями працівника
 function openEmployeeModal(emp) {
   const modal = document.getElementById("employeeModal");
@@ -252,6 +520,13 @@ function openEmployeeModal(emp) {
     <li><strong>Вулиця:</strong> ${emp.street}</li>
     <li><strong>Індекс:</strong> ${emp.zip_code}</li>
   `;
+
+  // Забороняємо редагування пароля у режимі редагування
+  const passwordInput = document.getElementById("passwordField");
+  passwordInput.disabled = true;
+  passwordInput.style.backgroundColor = "#e9ecef";
+  passwordInput.style.cursor = "not-allowed";
+
   modal.style.display = "flex";
   currentEmployee = emp;
 

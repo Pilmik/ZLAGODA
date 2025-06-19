@@ -10,6 +10,7 @@ body {
   background-color: #132144;
   color: white;
   height: 100vh;
+  overflow-y: auto;
   position: fixed;
   left: 0;
   top: 0;
@@ -35,6 +36,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex-grow: 1; 
+  overflow-y: auto;
 }
 
 .sidebar-nav a {
@@ -230,7 +233,7 @@ body {
 }
 
 .employee-report-btn {
-  background-color: #d9e7f3;
+  background-color: #fff1cc;
   border: none;
   padding: 10px 18px;
   border-radius: 10px;
@@ -291,7 +294,7 @@ body {
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end; /* ✅ тепер обидві кнопки з правого краю */
+  justify-content: flex-end; 
   gap: 12px;
   margin-top: 20px;
 }
@@ -344,7 +347,7 @@ body {
 }
 
 .employee-report-btn:hover {
-  background-color: #c6dcef;
+  background-color: #f5e3ab;
 }
 
 .employee-new-btn:hover {
@@ -520,4 +523,427 @@ body {
 .employee-table tr.highlight {
   background-color: #dbf8da !important; 
   font-weight: 600;
+}
+
+/* ======= КЛІЄНТИ ======= */
+.client-panel {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.client-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.clients-count {
+  font-size: 20px;
+  font-weight: 600;
+  color: #132144;
+  margin: 0;
+}
+
+.client-search-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-search {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  min-width: 200px;
+}
+
+.client-search-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: #132144;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.client-search-btn:hover {
+  background-color: #1c2e66;
+}
+
+.client-discount-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.discount-btn {
+  background-color: #e6f0e6;
+  border: 1px solid #9ad0b2;
+  color: #132144;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.discount-btn:disabled {
+  background-color: #f0f0f0;
+  border-color: #ccc;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.client-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  text-align: left;
+}
+
+.client-table th,
+.client-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.client-table th {
+  background-color: #132144;
+  color: white;
+}
+
+.client-table tr:hover {
+  background-color: #f4f8fb;
+}
+
+.client-table .details-cell {
+  text-align: center;
+}
+
+.client-table .details-btn {
+  background-color: #aac8f2;
+  color: #132144;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.client-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.client-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.client-report-btn {
+  background-color: #fff1cc;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.client-new-btn {
+  background-color: #9ad0b2; 
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.client-report-btn:hover {
+  background-color: #f5e3ab;
+}
+
+.client-new-btn:hover {
+  background-color: #87c9a5; 
+}
+
+/* ======= КАТЕГОРІЇ ТОВАРІВ ======= */
+.category-panel {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.category-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.categories-count {
+  font-size: 20px;
+  font-weight: 600;
+  color: #132144;
+  margin: 0;
+}
+
+.category-search-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-search {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  min-width: 200px;
+}
+
+.category-search-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: #132144;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.category-search-btn:hover {
+  background-color: #1c2e66;
+}
+
+.category-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  text-align: left;
+}
+
+.category-table th,
+.category-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.category-table th {
+  background-color: #132144;
+  color: white;
+}
+
+.category-table tr:hover {
+  background-color: #f4f8fb;
+}
+
+.category-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.category-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.category-report-btn {
+  background-color: #fff1cc; 
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.category-report-btn:hover {
+  background-color: #f5e3ab;
+}
+
+.category-new-btn {
+  background-color: #9ad0b2; 
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.category-new-btn:hover {
+  background-color: #87c9a5;
+}
+
+/* ======= ТОВАРИ ======= */
+.product-panel {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.product-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.products-count {
+  font-size: 20px;
+  font-weight: 600;
+  color: #132144;
+  margin: 0;
+}
+
+.product-search-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.product-search {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  min-width: 200px;
+}
+
+.product-category-filter {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  min-width: 220px;
+}
+
+.product-search-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: #132144;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.product-search-btn:hover {
+  background-color: #1c2e66;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  text-align: left;
+}
+
+.product-table th,
+.product-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.product-table th {
+  background-color: #132144;
+  color: white;
+}
+
+.product-table tr:hover {
+  background-color: #f4f8fb;
+}
+
+.product-table .details-cell {
+  text-align: center;
+}
+
+.product-table .details-btn {
+  background-color: #aac8f2;
+  color: #132144;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.product-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.product-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.product-report-btn {
+  background-color: #fff1cc; 
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.product-new-btn {
+  background-color: #9ad0b2; 
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #132144;
+}
+
+.product-report-btn:hover {
+  background-color: #f5e3ab;
+}
+
+.product-new-btn:hover {
+  background-color: #87c9a5;
+}
+
+.report-modal .toggle-switch-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.discount-btn.active {
+  background-color: #9ad0b2 !important; 
+  color: #132144;
+  border-color: #9ad0b2;
 }
