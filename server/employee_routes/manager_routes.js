@@ -15,7 +15,7 @@ router.put("/employees", authMiddleware, roleMiddleware(["MANAGER"]), controller
 router.delete("/employees/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteEmployee)
 
 router.get("/customers", authMiddleware, roleMiddleware(["MANAGER"]), controller.getAllCustomers)
-router.get("/customers/:number", authMiddleware, roleMiddleware(["MANAGER"]), controller.getCustomerByNumber)
+router.get("/customers/:phone_number", authMiddleware, roleMiddleware(["MANAGER"]), controller.getCustomerByNumber)
 router.post("/customers", authMiddleware, roleMiddleware(["MANAGER"]), controller.createCustomer)
 router.put("/customers", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateCustomerInfo)
 router.delete("/customers/:number", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteCustomer)

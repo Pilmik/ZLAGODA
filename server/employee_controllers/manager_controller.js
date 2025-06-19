@@ -240,17 +240,17 @@ class ManagerController{
     }
 
     async getCustomerByNumber(req, res){
-        const number = req.params.number;
-        if (!number) {
-            return res.status(400).json({message: "ID картки клієнта відсутнє."});
+        const phone_number = req.params.phone_number;
+        if (!phone_number) {
+            return res.status(400).json({message: "Номер телефона клієнта відсутній."});
         }
         try {
             const query = `
                 SELECT *
                 FROM Customer_Card
-                WHERE card_number = $1;
+                WHERE phone_number = $1;
             `
-            const customer = await pool.query(query, [number]);
+            const customer = await pool.query(query, [phone_number]);
             if (customer.rowCount === 0) {
                 return res.status(400).json({message: "Покупця з таким номером не існує"})
             }
