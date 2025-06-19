@@ -4,11 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zlagoda | Панель менеджера</title>
+
+  <!-- Основні стилі -->
   <link rel="stylesheet" href="./styles/dashboard.manager.css" />
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css">
 </head>
 <body>
-
+  <!-- ======================= БІЧНА ПАНЕЛЬ ======================= -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
       <div class="sidebar-logo">
@@ -16,18 +18,19 @@
         <span style="font-weight: 700; font-size: 20px;">Злагода</span>
       </div>
       <nav class="sidebar-nav">
-        <a href="dashboard.html" class="active"><i class="fi fi-rr-home"></i><span>Головна</span></a>
-        <a href="employees.html"><i class="fi fi-rr-user"></i><span>Працівники</span></a>
-        <a href="products.html"><i class="fi fi-rr-box"></i><span>Товари</span></a>
-        <a href="store-products.html"><i class="fi fi-rr-store-alt"></i><span>Товари в магазині</span></a>
-        <a href="categories.html"><i class="fi fi-rr-layers"></i><span>Категорії товарів</span></a>
-        <a href="sale.html"><i class="fi fi-rr-credit-card"></i><span>Продаж товару</span></a>
-        <a href="clients.html"><i class="fi fi-rr-users-alt"></i><span>Клієнти</span></a>
-        <a href="clients.html"><i class="fi fi-rr-star"></i><span>Постійні клієнти</span></a>
-        <a href="receipts.html"><i class="fi fi-rr-receipt"></i><span>Чеки</span></a>
-        <a href="profile.html"><i class="fi fi-rr-user"></i><span>Особиситий профіль</span></a>
+        <a href="#" class="nav-link active" data-section="home"><i class="fi fi-rr-home"></i><span>Головна</span></a>
+        <a href="#" class="nav-link" data-section="employees"><i class="fi fi-rr-user"></i><span>Працівники</span></a>
+        <a href="#" class="nav-link" data-section="products"><i class="fi fi-rr-box"></i><span>Товари</span></a>
+        <a href="#" class="nav-link" data-section="store-products"><i class="fi fi-rr-store-alt"></i><span>Товари в магазині</span></a>
+        <a href="#" class="nav-link" data-section="categories"><i class="fi fi-rr-layers"></i><span>Категорії товарів</span></a>
+        <a href="#" class="nav-link" data-section="sale"><i class="fi fi-rr-credit-card"></i><span>Продаж товару</span></a>
+        <a href="#" class="nav-link" data-section="clients"><i class="fi fi-rr-users-alt"></i><span>Клієнти</span></a>
+        <a href="#" class="nav-link" data-section="loyal-clients"><i class="fi fi-rr-star"></i><span>Постійні клієнти</span></a>
+        <a href="#" class="nav-link" data-section="receipts"><i class="fi fi-rr-receipt"></i><span>Чеки</span></a>
+        <a href="#" class="nav-link" data-section="profile"><i class="fi fi-rr-user"></i><span>Особиситий профіль</span></a>
       </nav>
     </div>
+
     <div class="sidebar-bottom">
       <div class="user-block">
         <i class="fi fi-rr-user"></i>
@@ -39,29 +42,230 @@
     </div>
   </aside>
 
+  <!-- ======================= MAIN CONTENT ======================= -->
   <main class="main-content">
-    <div class="dashboard-wrapper">
-      <h1>Панель менеджера</h1>
+    <div class="dashboard-wrapper" id="dashboard-content">
 
-      <div class="dashboard-grid">
-        <div class="dashboard-block">Блок 1</div>
-        <div class="dashboard-block">Блок 2</div>
-        <div class="dashboard-block">Блок 3</div>
-        <div class="dashboard-block">Блок 4</div>
+      <!-- ======= Головна панель ======= -->
+      <div id="home">
+        <h1>Панель менеджера</h1>
+        <div class="dashboard-grid">
+          <div class="dashboard-block">Блок 1</div>
+          <div class="dashboard-block">Блок 2</div>
+          <div class="dashboard-block">Блок 3</div>
+          <div class="dashboard-block">Блок 4</div>
+        </div>
       </div>
+
+      <!-- ======= Працівники ======= -->
+      <div id="employees" style="display:none">
+        <div class="employee-panel">
+
+          <!-- Верхня панель пошуку / фільтрації -->
+          <div class="employee-panel-top">
+            <h2 class="employee-count">Усього знайдено: 2</h2>
+
+            <div class="employee-filter">
+              <input type="text" placeholder="Введіть прізвище" class="employee-search" />
+              <button class="employee-search-btn">Пошук</button>
+            </div>
+
+            <label class="toggle-switch">
+              <input type="checkbox" id="cashierOnlyToggle">
+              <span class="slider"></span>
+              <span class="label-text">Тільки касири</span>
+            </label>
+          </div>
+
+          <!-- Таблиця працівників -->
+          <table class="employee-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Прізвище</th>
+                <th>Ім'я</th>
+                <th>Посада</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <!-- Пагінація -->
+          <div class="employee-pagination">
+            <button class="pagination-btn">←</button>
+            <span class="pagination-info">1 з 1</span>
+            <button class="pagination-btn">→</button>
+          </div>
+
+          <!-- Кнопки керування -->
+          <div class="employee-actions">
+            <button class="employee-report-btn">Сформувати звіт</button>
+            <button class="employee-new-btn">Додати працівниа</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======= Інші секції (поки приховані) ======= -->
+      <div id="products" style="display:none"></div>
+      <div id="store-products" style="display:none"></div>
+      <div id="categories" style="display:none"></div>
+      <div id="sale" style="display:none"></div>
+      <div id="clients" style="display:none"></div>
+      <div id="loyal-clients" style="display:none"></div>
+      <div id="receipts" style="display:none"></div>
+      <div id="profile" style="display:none"></div>
     </div>
   </main>
-</body>
-<script>
-  const token = localStorage.getItem("token");
-  if (!token){
-    window.location.href = "/"
-  }
-  const payload = JSON.parse(atob(token.split(".")[1]))
-  if (payload.roles !== "MANAGER") {
-    alert("Доступ не надано.")
-    window.location.href = "/"
-  }
 
-</script>
+  <!-- ========== МОДАЛКИ ========== -->
+  <!-- Модалка детальної інформації про працівника -->
+  <div class="modal-overlay" id="employeeModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" id="closeModal">&times;</span>
+      <h2>ID: MAN001</h2>
+      <ul class="modal-list">
+        <li><strong>Ім'я:</strong> Михайло</li>
+        <li><strong>Прізвище:</strong> Пілат</li>
+        <li><strong>По-батькові:</strong> Іванович</li>
+        <li><strong>Посада:</strong> MANAGER</li>
+        <li><strong>Зарплата:</strong> 35500.00</li>
+        <li><strong>Дата народження:</strong> 2004-11-17</li>
+        <li><strong>Початок роботи:</strong> 2025-06-01</li>
+        <li><strong>Телефон:</strong> 0123456789</li>
+        <li><strong>Місто:</strong> Київ</li>
+        <li><strong>Вулиця:</strong> Екстер</li>
+        <li><strong>Індекс:</strong> 12345</li>
+      </ul>
+      <div class="modal-actions">
+        <button class="btn-outline" id="deleteEmployee">Видалити</button>
+        <button class="btn-filled" id="editEmployee">Редагувати</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка створення/редагування працівника -->
+  <div class="modal-overlay" id="addEmployeeModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" id="closeAddModal">&times;</span>
+      <h2 id="employeeModalTitle">Новий працівник</h2>
+      <form class="modal-form">
+        <input type="hidden" name="display_id" />
+
+        <div class="form-group">
+          <label>Прізвище:
+            <input type="text" name="surname" placeholder="Іваненко" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Ім'я:
+            <input type="text" name="name" placeholder="Іван" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>По-батькові:
+            <input type="text" name="patronymic" placeholder="Іванович" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Посада:
+            <select name="position" required>
+              <option value="MANAGER">Менеджер</option>
+              <option value="CASHIER">Касир</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Пароль:
+            <input type="password" name="empl_password" placeholder="12345678" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Зарплата:
+            <input type="number" name="salary" min="0" placeholder="10000" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Дата народження:
+            <input type="date" name="birth_date" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Дата початку роботи:
+            <input type="date" name="start_date" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Телефон:
+            <input type="text" name="phone" maxlength="13" placeholder="+380000000000" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Місто:
+            <input type="text" name="city" placeholder="Київ" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Вулиця:
+            <input type="text" name="street" placeholder="Хрещатик, 1" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Індекс:
+            <input type="text" name="zipcode" placeholder="00000" required />
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-outline" type="button" id="cancelAddEmployee">Скасувати</button>
+          <button class="btn-filled" type="submit" id="submitEmployeeBtn">Додати</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+    <!-- Модалка створення звіту -->
+  <div class="modal-overlay" id="reportModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" id="closeReportModal">&times;</span>
+      <h2>Сформувати звіт</h2>
+      <form class="modal-form" id="reportForm">
+        <div class="form-group">
+          <label>Період з:
+            <input type="date" name="start_date" required>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>до:
+            <input type="date" name="end_date" required>
+          </label>
+        </div>
+        <div class="form-group toggle-switch-row">
+          <span class="label-text">Тільки касири</span>
+          <label class="toggle-switch">
+            <input type="checkbox" name="cashiersOnly" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn-outline" type="button" id="cancelReport">Скасувати</button>
+          <button class="btn-filled" type="submit">Завантажити PDF</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script src="./dashboard-manager.js"></script>
+</body>
 </html>
