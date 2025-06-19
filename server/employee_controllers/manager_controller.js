@@ -152,6 +152,13 @@ class ManagerController{
             zip_code
 
             } = updatedEmployee
+            const birthDate = new Date(date_of_birth);
+            const startDate = new Date(date_of_start);
+            const ageAtStart = startDate.getFullYear() - birthDate.getFullYear();
+            if (ageAtStart < 18 || (ageAtStart === 18 && birthDate.getMonth() > startDate.getMonth()) 
+                || (ageAtStart === 18 && birthDate.getMonth() === startDate.getMonth() && birthDate.getDate() > startDate.getDate())) {
+                return res.status(400).json({ message: "Працівник повинен бути старше 18 років на момент вступу на посаду" });
+            }
             const result = await pool.query(`
                     UPDATE employee
                     SET 
@@ -203,30 +210,168 @@ class ManagerController{
             return res.status(500).json({message: "Помилка сервера."})
         }
     }
+        
+
+    //===Customers===
+    async getAllCustomers(req, res){
+        const percentsParam = req.query.percent;
+        let percents = [3, 5, 8];
+        
+        if (percentsParam) {
+            percents = percentsParam.split(',').map(Number).filter((p) => [3, 5, 8].includes(p))
+            if (percents.length === 0){
+                return res.status(400).json({message: "Некоректні параметри запиту."})
+            }
+        }
+
+        try {
+            const placeholders = percents.map((_, index) => `$${index + 1}`).join(", ")
+            const query = `
+                SELECT *
+                FROM Customer_Card
+                WHERE percent IN (${placeholders})
+            `
+            const customers = await pool.query(query, percents)
+            return res.status(200).json(customers.rows)
+        } catch (err) {
+            console.error('Помилка отримання покупців:', err.stack);
+            return res.status(500).json({ message: 'Помилка сервера' });
+        }
+    }
+
+    async getCustomerByNumber(req, res){
+        const number = req.params.number;
+        if (!number) {
+            return res.status(400).json({message: "ID картки клієнта відсутнє."});
+        }
+        try {
+            const query = `
+                SELECT *
+                FROM Customer_Card
+                WHERE card_number = $1;
+            `
+            const customer = await pool.query(query, [number]);
+            if (customer.rowCount === 0) {
+                return res.status(400).json({message: "Покупця з таким номером не існує"})
+            }
+            return res.status(200).json(customer.rows[0])
+        } catch (err) {
+            console.error("Помилка: ", err.stack);
+            res.status(500).json({message: "Помилка сервера."});
+        }
+    }
 
     async createCustomer(req, res){
-        const {card_number, cust_surname, cust_name,
+        const {cust_surname, cust_name,
                 cust_patronymic, phone_number, city, 
                 street, zip_code, percent} = req.body;
+
+        if (!cust_surname || !cust_name || !phone_number || !percent) {
+            return res.status(400).json({ message: "Прізвище, ім’я, номер телефону та відсоток є обов’язковими." });
+        }
+         if (![3, 5, 8].includes(Number(percent))) {
+            return res.status(400).json({ message: "Некоректне значення відсотка. Допустимі значення: 3, 5, 8." });
+        }
+
         try {
-            const {rowCount} = await pool.query(`
-                INSERT INTO customer_card (card_number, cust_surname, cust_name,
+            const result = await pool.query(`
+                INSERT INTO customer_card (cust_surname, cust_name,
                                             cust_patronymic, phone_number, city, 
                                             street, zip_code, percent)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                ON CONFLICT (card_number) DO NOTHING;
-            `, [card_number, cust_surname, cust_name,
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                ON CONFLICT (phone_number) DO NOTHING
+                RETURNING card_number, cust_surname, cust_name, percent;;
+            `, [cust_surname, cust_name,
                 cust_patronymic, phone_number, city, 
                 street, zip_code, percent])
-            if(rowCount > 0){
-                res.status(200).json({message: "Додано покупця з карткою: " + card_number})
+            if (result.rowCount > 0) {
+                const newCustomer = result.rows[0]
+                return res.status(200).json({
+                    message: "Покупця з карткою створено",
+                    customer: newCustomer
+                })
             } else {
-                console.log("Поммлка створення картки покупця")
+                return res.status(400).json({message: "Покупець із таким номером вже існує"})
             }
-        }catch(e){
-            console.error("Помилка: " + e)
+        }catch(err){
+            console.error("Помилка створення покупця: ", err.stack)
             res.status(500).json({message: "Помилка сервера"})
         }  
+    }
+
+   async updateCustomerInfo(req, res) {
+        const {
+            card_number,
+            cust_surname,
+            cust_name,
+            cust_patronymic,
+            phone_number,
+            city,
+            street,
+            zip_code,
+            percent} = req.body;
+        if (!card_number || !cust_surname || !cust_name || !phone_number || !percent) {
+            return res.status(400).json({message: "Не вказані обов'язкові поля."});
+        }
+        if (![3, 5, 8].includes(Number(percent))) {
+            return res.status(400).json({message: "Некоректне значення відсотка"})
+        }
+        try {
+            const check_unique = `
+                SELECT *
+                FROM Customer_Card
+                WHERE phone_number = $1 AND card_number <> $2;
+            `
+            const unique = await pool.query(check_unique, [phone_number, card_number]);
+            if (unique.rowCount !== 0) {
+                return res.status(400).json({message: "Спроба ввести існуючий номер телефона."})
+            }
+            const query = `
+                UPDATE Customer_Card
+                SET cust_surname = $1,
+                    cust_name = $2,
+                    cust_patronymic = $3,
+                    phone_number = $4,
+                    city = $5,
+                    street = $6,
+                    zip_code = $7,
+                    percent = $8
+                WHERE card_number = $9
+                RETURNING *;
+            `
+            const result = await pool.query(query, [cust_surname, cust_name, cust_patronymic || null,
+                phone_number, city || null, street || null, zip_code || null, percent, card_number
+            ]);
+            if (result.rowCount === 0) {
+                return res.status(400).json({message: "Помилка оновлення картки покупця."})
+            }
+            return res.status(200).json(result.rows[0])
+        } catch (err) {
+            console.error("Помилка оновлення покупця: ", err.stack)
+            return res.status(500).json({message: "Помилка сервера"})
+        }      
+    }
+
+    async deleteCustomer(req, res) {
+        const number = req.params.number;
+
+        try {
+            const query = `
+                DELETE FROM Customer_Card
+                WHERE card_number = $1
+                RETURNING card_number;
+            `;
+            const result = await pool.query(query, [number]);
+
+            if (result.rowCount === 0) {
+                return res.status(400).json({ message: "Покупця з таким номером не знайдено." });
+            }
+
+            return res.status(200).json({ message: "Покупця успішно видалено." });
+        } catch (err) {
+            console.error("Помилка видалення покупця:", err.stack);
+            return res.status(500).json({ message: "Помилка сервера." });
+        }
     }
 }
 
