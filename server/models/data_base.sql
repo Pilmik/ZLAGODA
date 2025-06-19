@@ -29,3 +29,8 @@ CREATE TABLE Customer_Card(
     zip_code VARCHAR(9) NULL,
     percent INTEGER NOT NULL CHECK (percent >= 0 AND percent IN (3, 5, 8))
 );
+
+CREATE TABLE Category(
+    category_number SERIAL PRIMARY KEY,
+    category_name VARCHAR(50) UNIQUE NOT NULL
+);
