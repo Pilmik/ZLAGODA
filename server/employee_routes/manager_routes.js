@@ -14,6 +14,10 @@ router.post("/employees", authMiddleware, roleMiddleware(["MANAGER"]), controlle
 router.put("/employees", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateEmployeeInfo)
 router.delete("/employees/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteEmployee)
 
-router.post("/customer", authMiddleware, roleMiddleware(["MANAGER"]), controller.createCustomer)
+router.get("/customers", authMiddleware, roleMiddleware(["MANAGER"]))
+router.get("/customers/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.getCustomerById)
+router.post("/customers", authMiddleware, roleMiddleware(["MANAGER"]), controller.createCustomer)
+router.put("/customers", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateCustomerInfo)
+router.delete("/customers/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteCustomer)
 
 module.exports = router;

@@ -228,6 +228,27 @@ class ManagerController{
             res.status(500).json({message: "Помилка сервера"})
         }  
     }
+
+    //===Customers===
+    async getAllCustomers(req, res){
+
+    }
+
+    async getCustomerById(req, res){
+
+    }
+
+    async createCustomer(req, res){
+
+    }
+
+    async updateCustomerInfo(req, res){
+
+    }
+
+    async deleteCustomer(req, res){
+
+    }
 }
 
 module.exports = new ManagerController();
