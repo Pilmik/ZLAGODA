@@ -230,6 +230,7 @@ class ManagerController{
                 SELECT *
                 FROM Customer_Card
                 WHERE percent IN (${placeholders})
+                ORDER BY cust_surname ASC;
             `
             const customers = await pool.query(query, percents)
             return res.status(200).json(customers.rows)
