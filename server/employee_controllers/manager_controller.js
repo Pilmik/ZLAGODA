@@ -522,8 +522,203 @@ class ManagerController{
             return res.status(200).json({ message: "Категорію успішно видалено" });
         } catch (err) {
             console.error("Помилка видалення категорії:", err.stack);
+            if (err.code === '23503') {
+                return res.status(400).json({ message: "Дана категорія використовується в продуктах. Видалення неможливе" });
+            }
             return res.status(500).json({ message: "Помилка сервера" });
         }
+    }
+
+    async getAllProducts(req, res) {
+        const {name, category, number} = req.query;
+
+        let query = "SELECT * FROM Product";
+        const params = [];
+        let conditions = [];
+        if (name && name.trim() !== '') {
+            conditions.push(`product_name ILIKE $${params.length + 1}`)
+            params.push(`%${name.trim()}%`)
+        }
+        if (category && category.trim() !== '') {
+            query = `
+                SELECT p.id_product, p.product_name, p.category_number, p.characteristics
+                FROM Product p
+                JOIN Category c ON p.category_number = c.category_number
+            `;
+            conditions.push(`c.category_name ILIKE $${params.length + 1}`);
+            params.push(`%${category.trim()}%`);
+        } else if (number) {
+            if (!Number.isInteger(Number(number)) || Number(number) <= 0) {
+                return res.status(400).json({ message: "Некоректний номер категорії" });
+            }
+            conditions.push(`category_number = $${params.length + 1}`);
+            params.push(Number(number));
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
+        }
+
+        query += ` ORDER BY product_name ASC;`;
+
+        try {
+            const result = await pool.query(query, params);
+            return res.status(200).json(result.rows);
+        } catch (err) {
+            console.error("Помилка отримання продуктів: ", err.stack);
+            return res.status(500).json({ message: "Помилка сервера" });
+        }
+    }
+
+    async getProductById(req, res) {
+        const id = req.params.id;
+
+        if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+            return res.status(400).json({ message: "Некоректний ID продукту" });
+        }
+
+        try {
+            const query = `
+                SELECT * FROM Product
+                WHERE id_product = $1;
+            `;
+            const result = await pool.query(query, [id]);
+            if (result.rowCount.length === 0) {
+                return res.status(400).json({ message: "Продукт не знайдено" });
+            }
+            res.status(200).json(result.rows[0]);
+        } catch (err) {
+            console.error("Помилка отримання продукту: ", err.stack);
+            return res.status(500).json({ message: "Помилка сервера" });
+        }
+    }
+
+    async createProduct(req, res) {
+        const {
+            product_name,
+            characteristics,
+            category_number
+        } = req.body;
+
+        if (!product_name || product_name.trim().length === 0) {
+            return res.status(400).json({ message: "Назва продукту є обов’язковою" });
+        }
+        if (!characteristics || characteristics.trim().length === 0) {
+            return res.status(400).json({ message: "Характеристики продукту є обов’язковими" });
+        }
+        if (!Number.isInteger(Number(category_number)) || Number(category_number) <= 0) {
+            return res.status(400).json({ message: "Некоректний номер категорії" });
+        }
+        if (product_name.length > 50) {
+            return res.status(400).json({ message: "Назва перевищила 50 символів" });
+        }
+        if (characteristics.length > 100) {
+            return res.status(400).json({ message: "Характеристика перевищила 100 символів" });
+        }
+
+        try {
+            const query = `
+                INSERT INTO Product (product_name, characteristics, category_number)
+                VALUES ($1, $2, $3)
+                RETURNING  id_product, product_name, characteristics, category_number;
+            `
+            const result = await pool.query(query, [product_name.trim(), 
+                characteristics.trim(), category_number]);
+            
+            if (result.rowCount === 0) {
+                return res.status(500).json({ message: "Не вдалося створити продукт" });
+            }
+            
+            return res.status(200).json({
+                message: "Новий продукт створено",
+                product: result.rows[0]
+            });
+
+        } catch (err) {
+            console.error("Помилка створення продукту: ", err.stack);
+            if (err.code === '23503') {
+                return res.status(400).json({ message: "Вказаної категорії не існує" });
+            }
+            return res.status(500).json({ message: "Помилка сервера" });
+        }
+    }
+
+    async updateProductInfo(req, res) {
+        const {id_product, 
+            product_name, 
+            characteristics, 
+            category_number} = req.body;
+
+        if (!Number.isInteger(Number(id_product)) || Number(id_product) <= 0) {
+            return res.status(400).json({ message: "Некоректний ID продукту" });
+        }
+        if (!product_name || product_name.trim().length === 0) {
+            return res.status(400).json({ message: "Назва продукту є обов’язковою" });
+        }
+        if (!characteristics || characteristics.trim().length === 0) {
+            return res.status(400).json({ message: "Характеристики продукту є обов’язковими" });
+        }
+        if (!Number.isInteger(Number(category_number)) || Number(category_number) <= 0) {
+            return res.status(400).json({ message: "Некоректний номер категорії" });
+        }
+        if (product_name.length > 50) {
+            return res.status(400).json({ message: "Назва перевищила 50 символів" });
+        }
+        if (characteristics.length > 100) {
+            return res.status(400).json({ message: "Характеристика перевищила 100 символів" });
+        }
+
+        try {
+            const query = `
+                UPDATE Product
+                SET product_name = $1,
+                    characteristics = $2,
+                    category_number = $3
+                WHERE id_product = $4
+                RETURNING id_product, product_name, category_number, characteristics;
+            `
+            const result = await pool.query(query, [product_name.trim(), characteristics.trim(), category_number, id_product]);
+
+            if (result.rowCount === 0) {
+                return res.status(400).json({ message: "Продукт не знайдено" });
+            }
+
+            return res.status(200).json({
+                message: "Продукт успішно оновлено",
+                product: result.rows[0]
+            });
+        } catch (err) {
+           console.error("Помилка оновлення продукту:", err.stack);
+            if (err.code === '23503') {
+                return res.status(400).json({ message: "Вказаної категорії не існує" });
+            }
+            return res.status(500).json({ message: "Помилка сервера" }); 
+        }
+    }
+
+    async deleteProduct(req, res) {
+        const id = req.params.id;
+
+        if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+            return res.status(400).json({ message: "Некоректний ID продукту" });
+        }
+
+        try {
+            const query = `
+                DELETE FROM Product
+                WHERE id_product = $1
+                RETURNING id_product;
+            `
+            const result = await pool.query(query, [id]);
+            if (result.rowCount.length === 0) {
+                return res.status(400).json({ message: "Продукт не знайдено" });
+            }
+            return res.status(200).json({message: "Продукт видалено"});
+        } catch (err) {
+            console.error("Помилка видалення продукту: ", err.stack);
+            return res.status(500).json({ message: "Помилка сервера" }); 
+        }
+
     }
 }
 
