@@ -32,4 +32,11 @@ router.post("/products", authMiddleware, roleMiddleware(["MANAGER"]), controller
 router.put("/products", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateProductInfo)
 router.delete("/products/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteProduct)
 
+router.get("/store_products", authMiddleware, roleMiddleware(["MANAGER"]), controller.getAllStoreProducts)
+router.get("/store_products/:upc", authMiddleware, roleMiddleware(["MANAGER"]), controller.getStoreProductByUPC)
+router.post("/store_products", authMiddleware, roleMiddleware(["MANAGER"]), controller.createStoreProduct)
+router.put("/store_products", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateStoreProduct)
+router.delete("/store_products/:upc", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteStoreProduct)
+
+
 module.exports = router;

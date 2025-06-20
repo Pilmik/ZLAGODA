@@ -42,3 +42,19 @@ CREATE TABLE Product(
     category_number INTEGER NOT NULL,
     FOREIGN KEY (category_number) REFERENCES Category (category_number) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+
+CREATE TABLE upc_counter (
+    id INTEGER PRIMARY KEY,
+    last_item_number INTEGER NOT NULL DEFAULT -1
+);
+
+CREATE TABLE Store_Product(
+    UPC VARCHAR(13) PRIMARY KEY,
+    selling_price DECIMAL(13, 4) NOT NULL,
+    products_number INTEGER NOT NULL,
+    promotional_product BOOLEAN NOT NULL,
+    UPC_prom VARCHAR(13) NULL,
+    id_product INTEGER NOT NULL,
+    FOREIGN KEY (UPC_prom) REFERENCES Store_Product (UPC) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (id_product) REFERENCES Product (id_product) ON DELETE NO ACTION ON UPDATE CASCADE
+);
