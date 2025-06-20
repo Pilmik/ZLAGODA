@@ -514,7 +514,7 @@ class ManagerController{
                 WHERE category_number = $1
                 RETURNING category_number;
             `
-            const result = pool.query(query, [id]);
+            const result = await pool.query(query, [id]);
             if (result.rowCount === 0) {
                 return res.status(400).json({ message: "Категорію не знайдено" });
             }
