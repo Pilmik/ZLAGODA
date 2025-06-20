@@ -853,7 +853,6 @@ class ManagerController{
             }
 
             let finalPrice = null;
-            //let finalUPCProm = UPC_prom;
 
             if (promotional_product) {
                 if (!regularProduct) {
@@ -865,7 +864,6 @@ class ManagerController{
                 }
 
                 finalPrice = validatePrice((regularProduct.selling_price * 0.8).toFixed(4));
-                finalUPCProm = null;
             } else {
                 finalPrice = validatePrice(selling_price);
             }
@@ -879,7 +877,7 @@ class ManagerController{
                 const result = await client.query(
                     `INSERT INTO Store_Product (
                         upc, selling_price, products_number, promotional_product, id_product
-                    ) VALUES ($1, $2, $3, $4, $5, $6)
+                    ) VALUES ($1, $2, $3, $4, $5)
                     RETURNING *`,
                     [upc, finalPrice, products_number, promotional_product, id_product]
                 );
