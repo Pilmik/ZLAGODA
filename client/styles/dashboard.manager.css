@@ -947,3 +947,19 @@ body {
   color: #132144;
   border-color: #9ad0b2;
 }
+
+.modal-form textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.modal-form select {
+  width: 100%;
+  box-sizing: border-box;
+}

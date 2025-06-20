@@ -16,7 +16,9 @@ let currentEditingId = null;
 // Поточний обʼєкт працівника для перегляду
 let currentEmployee = null;
 
-let token = null;
+let token = null; 
+// Зберігатиме всі категорії для доступу в модалках
+let categories = []; 
 
 // ===================== DOMContentLoaded =====================
   document.addEventListener("DOMContentLoaded", () => {
@@ -126,6 +128,36 @@ let token = null;
     if (e.key === "Enter") {
       e.preventDefault();
       document.querySelector("#categories .employee-search-btn").click();
+    }
+  });
+
+  // Cлухачі подій до кнопки пошуку товарів
+  document.querySelector(".product-search-btn").addEventListener("click", () => {
+    fetchProducts();
+  });
+
+  // Відкриття модалки створення товару
+  document.querySelector(".product-new-btn").addEventListener("click", () => {
+    document.getElementById("addProductModalTitle").textContent = "Новий товар";
+    document.getElementById("submitProductBtn").textContent = "Додати";
+    document.querySelector("#productForm").reset();
+    isEditMode = false;
+    currentEditingId = null;
+    document.getElementById("addProductModal").style.display = "flex";
+    populateCategorySelect();
+  });
+
+  document.querySelector(".product-search").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      fetchProducts();
+    }
+  });
+
+  document.querySelector(".product-category-filter").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      fetchProducts();
     }
   });
 
@@ -442,7 +474,11 @@ let token = null;
         }
         if (section === "categories") {
         fetchCategories();
+        }
+        if (section === "products") {
+        fetchProducts(); // завантаження всіх товарів
       }
+      fetchCategories(); 
       }
     });
   });
@@ -617,6 +653,16 @@ document.getElementById("categoryModal").addEventListener("click", (e) => {
   }
 });
 
+// === Закриття модалки товару ===
+document.getElementById("closeProductModal").addEventListener("click", () => {
+  document.getElementById("productModal").style.display = "none";
+});
+document.getElementById("productModal").addEventListener("click", (e) => {
+  if (e.target.id === "productModal") {
+    document.getElementById("productModal").style.display = "none";
+  }
+});
+
 // Видалення клієнта
 async function deleteClient(card_number) {
   if (!confirm(`Ви дійсно хочете видалити клієнта ${card_number}?`)) return;
@@ -743,6 +789,7 @@ async function fetchCategories() {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
+    categories = data; // ← запам’ятовуємо список категорій
     renderCategoryTable(data);
   } catch (err) {
     console.error("Помилка завантаження категорій:", err.message);
@@ -786,5 +833,210 @@ async function deleteCategory(id) {
   } catch (err) {
     alert("Помилка з'єднання з сервером.");
     console.error(err);
+  }
+}
+
+// ===================== ТОВАРИ =====================
+
+document.getElementById("productForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+
+  const raw = {
+    id_product: currentEditingId,
+    product_name: formData.get("product_name"),
+    category_number: formData.get("category_number"),
+    characteristics: formData.get("characteristics"),
+  };
+
+  const method = isEditMode ? "PUT" : "POST";
+
+  try {
+    const res = await fetch("/dashboard-manager/products", {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(raw),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || "Успішно");
+      fetchProducts();
+      document.getElementById("addProductModal").style.display = "none";
+    } else {
+      alert(data.message || "Помилка");
+    }
+  } catch (err) {
+    alert("Помилка з'єднання з сервером");
+  }
+});
+
+// Отримати список товарів із фільтрацією
+async function fetchProducts() {
+  const token = localStorage.getItem("token"); // ← завжди отримуємо заново
+  const name = document.querySelector(".product-search").value.trim();
+  const category = document.querySelector(".product-category-filter").value.trim();
+
+  let query = [];
+  if (name) query.push(`name=${encodeURIComponent(name)}`);
+  if (category) {
+    if (!isNaN(category)) {
+      query.push(`number=${category}`);
+    } else {
+      query.push(`category=${encodeURIComponent(category)}`);
+    }
+  }
+
+  const url = `/dashboard-manager/products${query.length > 0 ? `?${query.join("&")}` : ""}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ← Ось це треба!
+      },
+    });
+
+    const data = await res.json();
+    renderProductTable(data);
+  } catch (err) {
+    console.error("Помилка завантаження товарів:", err);
+    renderProductTable([]); // Порожній рендер на випадок фейлу
+  }
+}
+
+// Вивід товарів у таблицю
+function renderProductTable(data) {
+  const tbody = document.querySelector(".product-table tbody");
+  const count = document.querySelector(".products-count");
+  tbody.innerHTML = "";
+
+  data.forEach(prod => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${prod.id_product}</td>
+      <td>${prod.category_number}</td>
+      <td>${prod.product_name}</td>
+    `;
+    row.addEventListener("click", () => openProductModal(prod));
+    tbody.appendChild(row);
+  });
+
+  count.textContent = `Усього знайдено: ${data.length}`;
+}
+
+document.getElementById("cancelAddProduct").addEventListener("click", () => {
+  document.getElementById("productForm").reset();
+  document.getElementById("addProductModal").style.display = "none";
+});
+
+document.getElementById("closeAddProductModal").addEventListener("click", () => {
+  document.getElementById("productForm").reset();
+  document.getElementById("addProductModal").style.display = "none";
+});
+
+// === ВІДКРИТТЯ МОДАЛКИ З ІНФОРМАЦІЄЮ ПРО ТОВАР ===
+function openProductModal(prod) {
+  const modal = document.getElementById("productModal");
+  modal.querySelector("#productModalTitle").textContent = `ID: ${prod.id_product}`;
+
+  // Пошук назви категорії за номером
+  const cat = categories.find(c => c.category_number === prod.category_number);
+  const categoryName = cat ? cat.category_name : "(невідомо)";
+
+  const list = modal.querySelector("#productDetailsList");
+  list.innerHTML = `
+    <li><strong>Назва:</strong> ${prod.product_name}</li>
+    <li><strong>Категорія:</strong> ${categoryName}</li>
+    <li><strong>Номер категорії:</strong> ${prod.category_number}</li>
+    <li><strong>Опис:</strong> ${prod.characteristics || "-"}</li>
+  `;
+
+  modal.style.display = "flex";
+
+  document.getElementById("deleteProductBtn").onclick = () => deleteProduct(prod.id_product);
+  document.getElementById("editProductBtn").onclick = () => {
+    isEditMode = true;
+    currentEditingId = prod.id_product;
+
+    const form = document.querySelector("#productForm");
+    form.product_name.value = prod.product_name;
+    form.category_number.value = prod.category_number;
+    form.characteristics.value = prod.characteristics || "";
+
+    document.getElementById("addProductModalTitle").textContent = `Редагування товару: ${prod.id_product}`;
+    document.getElementById("submitProductBtn").textContent = "Готово";
+
+    document.getElementById("productModal").style.display = "none";
+    populateCategorySelect().then(() => {
+    form.category_number.value = prod.category_number;
+  });
+    document.getElementById("addProductModal").style.display = "flex";
+  };
+}
+
+// === ЗАКРИТТЯ модалки товару ===
+document.getElementById("closeProductModal").addEventListener("click", () => {
+  document.getElementById("productModal").style.display = "none";
+});
+document.getElementById("productModal").addEventListener("click", (e) => {
+  if (e.target.id === "productModal") {
+    document.getElementById("productModal").style.display = "none";
+  }
+});
+
+// === ВИДАЛЕННЯ ТОВАРУ ===
+async function deleteProduct(id_product) {
+  if (!confirm(`Ви дійсно хочете видалити товар ${id_product}?`)) return;
+  try {
+    const res = await fetch(`/dashboard-manager/products/${id_product}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || "Товар видалено.");
+      document.getElementById("productModal").style.display = "none";
+      fetchProducts(); // оновлення таблиці
+    } else {
+      alert(data.message || "Помилка при видаленні.");
+    }
+  } catch (err) {
+    alert("Помилка з'єднання з сервером.");
+    console.error(err);
+  }
+}
+
+async function populateCategorySelect() {
+  const select = document.querySelector('#addProductModal select[name="category_number"]');
+  select.innerHTML = ''; // очищення перед новим завантаженням
+
+  try {
+    const res = await fetch("/dashboard-manager/category", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+
+    if (!res.ok) throw new Error("Помилка отримання категорій");
+
+    const categories = await res.json();
+
+    categories.forEach(cat => {
+      const option = document.createElement("option");
+      option.value = cat.category_number;
+      option.textContent = cat.category_name;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Помилка завантаження категорій у select:", err.message);
+    const option = document.createElement("option");
+    option.value = '';
+    option.textContent = 'Категорії не завантажено';
+    option.disabled = true;
+    select.appendChild(option);
   }
 }
