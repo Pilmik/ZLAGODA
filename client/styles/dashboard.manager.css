@@ -21,6 +21,20 @@ body {
   justify-content: space-between;
 }
 
+.sidebar-nav a i {
+  font-size: 20px;
+  width: 24px;
+  min-width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.sidebar-nav a span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .sidebar-logo {
   text-align: center;
   margin-bottom: 40px;
@@ -43,13 +57,29 @@ body {
 .sidebar-nav a {
   display: flex;
   align-items: center;
-  gap: 14px;
-  text-decoration: none;
-  color: white;
   padding: 10px 14px;
   border-radius: 12px;
-  transition: background 0.2s ease;
+  text-decoration: none;
+  color: white;
   font-size: 15px;
+  transition: background 0.2s ease;
+  gap: 12px;
+}
+
+.sidebar-nav .nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 28px; /* або 24px, головне — однаково */
+  min-width: 28px;
+}
+
+.sidebar-nav .nav-icon i {
+  font-size: 20px;
+}
+
+.sidebar-nav .nav-text {
+  white-space: nowrap;
 }
 
 .sidebar-nav a:hover {
@@ -270,6 +300,7 @@ body {
   max-width: 90%;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   animation: fadeIn 0.2s ease;
+  overflow-y: auto;
 }
 
 .modal h2 {
@@ -942,11 +973,13 @@ body {
   gap: 6px;
 }
 
-.discount-btn.active {
-  background-color: #9ad0b2 !important; 
+/* тільки звичайні зелені кнопки */
+.discount-btn.active:not(.promo-btn) {
+  background-color: #9ad0b2;
   color: #132144;
   border-color: #9ad0b2;
 }
+
 
 .modal-form textarea {
   width: 100%;
@@ -962,4 +995,92 @@ body {
 .modal-form select {
   width: 100%;
   box-sizing: border-box;
+}
+
+.modal-list li {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.modal-description {
+  display: block;
+  margin-top: 4px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.product-upc-search {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  min-width: 200px;
+  background-color: white;
+  font-size: 14px;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.sort-icon {
+  width: 22px;
+  height: 22px;
+  margin-left: 8px;
+  vertical-align: middle;
+  transform: translateY(1px);
+  transition: transform 0.2s ease;
+}
+
+.sort-icon.sort-asc {
+  transform: rotate(180deg);
+}
+
+.sort-icon.sort-desc {
+  transform: rotate(0deg);
+}
+
+.discount-btn {
+  background-color: #d6efe1; /* світліший варіант зеленого */
+  border: 1px solid #9ad0b2;
+  color: #132144;
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 15px;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.discount-btn:hover {
+  background-color: #c0e0cd; /* затемнення при наведенні */
+}
+
+.discount-btn.active {
+  background-color: #9ad0b2;
+  color: #132144;
+  border-color: #9ad0b2;
+}
+
+.promo-btn {
+  background-color: #f8d7da; /* світло-рожевий (неактивна) */
+  border: 1px solid #f5c2c7;
+  color: #132144;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.promo-btn:hover {
+  background-color: #f1b0b7; /* м'яке затемнення при наведенні */
+}
+
+.promo-btn.active {
+  background-color: #e27b8a; /* трохи темніший рожевий, НЕ #dc3545 */
+  border-color: #e27b8a;
+  color: white;
 }

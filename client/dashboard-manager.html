@@ -18,16 +18,43 @@
         <span style="font-weight: 700; font-size: 20px;">Злагода</span>
       </div>
       <nav class="sidebar-nav">
-        <a href="#" class="nav-link active" data-section="home"><i class="fi fi-rr-home"></i><span>Головна</span></a>
-        <a href="#" class="nav-link" data-section="employees"><i class="fi fi-rr-user"></i><span>Працівники</span></a>
-        <a href="#" class="nav-link" data-section="products"><i class="fi fi-rr-box"></i><span>Товари</span></a>
-        <a href="#" class="nav-link" data-section="store-products"><i class="fi fi-rr-store-alt"></i><span>Товари в магазині</span></a>
-        <a href="#" class="nav-link" data-section="categories"><i class="fi fi-rr-layers"></i><span>Категорії товарів</span></a>
-        <a href="#" class="nav-link" data-section="sale"><i class="fi fi-rr-credit-card"></i><span>Продаж товару</span></a>
-        <a href="#" class="nav-link" data-section="clients"><i class="fi fi-rr-users-alt"></i><span>Клієнти</span></a>
-        <a href="#" class="nav-link" data-section="receipts"><i class="fi fi-rr-receipt"></i><span>Чеки</span></a>
-        <a href="#" id="logoutBtn" class="nav-link"><i class="fi fi-rr-sign-out-alt"></i><span>Вийти</span></a>
-      </nav>
+          <a href="#" class="nav-link active" data-section="home">
+            <span class="nav-icon"><i class="fi fi-rr-home"></i></span>
+            <span class="nav-text">Головна</span>
+          </a>
+          <a href="#" class="nav-link" data-section="employees">
+            <span class="nav-icon"><i class="fi fi-rr-user"></i></span>
+            <span class="nav-text">Працівники</span>
+          </a>
+          <a href="#" class="nav-link" data-section="categories">
+            <span class="nav-icon"><i class="fi fi-rr-layers"></i></span>
+            <span class="nav-text">Категорії товарів</span>
+          </a>
+          <a href="#" class="nav-link" data-section="store-products">
+            <span class="nav-icon"><i class="fi fi-rr-store-alt"></i></span>
+            <span class="nav-text">Товари в магазині</span>
+          </a>
+          <a href="#" class="nav-link" data-section="products">
+            <span class="nav-icon"><i class="fi fi-rr-box"></i></span>
+            <span class="nav-text">Товари</span>
+          </a>
+          <a href="#" class="nav-link" data-section="sale">
+            <span class="nav-icon"><i class="fi fi-rr-credit-card"></i></span>
+            <span class="nav-text">Продаж товару</span>
+          </a>
+          <a href="#" class="nav-link" data-section="clients">
+            <span class="nav-icon"><i class="fi fi-rr-users-alt"></i></span>
+            <span class="nav-text">Клієнти</span>
+          </a>
+          <a href="#" class="nav-link" data-section="receipts">
+            <span class="nav-icon"><i class="fi fi-rr-receipt"></i></span>
+            <span class="nav-text">Чеки</span>
+          </a>
+          <a href="#" id="logoutBtn" class="nav-link">
+            <span class="nav-icon"><i class="fi fi-rr-sign-out-alt"></i></span>
+            <span class="nav-text">Вийти</span>
+          </a>
+        </nav>
     </div>
   </aside>
 
@@ -35,7 +62,7 @@
   <main class="main-content">
     <div class="dashboard-wrapper" id="dashboard-content">
 
-      <!-- ======= Головна панель ======= -->
+      <!-- ======= ГОЛОВНА ======= -->
       <div id="home">
         <h1>Панель менеджера</h1>
         <div class="dashboard-grid">
@@ -46,7 +73,7 @@
         </div>
       </div>
 
-      <!-- ======= Працівники ======= -->
+      <!-- ======= ПРАЦІВНИКИ ======= -->
       <div id="employees" style="display:none">
         <div class="employee-panel">
 
@@ -175,6 +202,73 @@
           <div class="employee-actions">
             <button class="employee-report-btn">Сформувати звіт</button>
             <button class="category-new-btn">Нова категорія</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======= ТОВАРИ У МАГАЗИНІ ======= -->
+      <div id="store-products" style="display: none;">
+        <div class="product-panel">
+
+          <!-- Верхня панель: заголовок, пошук, фільтри -->
+          <div class="product-panel-top">
+            <h2 class="products-count">Усього знайдено: 1</h2>
+
+            <div class="client-search-filter">
+              <input type="text" placeholder="Введіть UPC або назву товару" class="product-upc-search" />
+              <button class="product-search-btn">Пошук</button>
+            </div>
+
+            <div class="client-discount-buttons">
+              <button class="discount-btn promo-btn" data-value="promo">Акційні</button>
+
+              <button class="discount-btn" data-value="regular">Неакційні</button>
+            </div>
+          </div>
+
+          <!-- Таблиця товарів у магазині -->
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th>UPC</th>
+                <th class="sortable" data-sort="product_name">
+                  Назва товару
+                  <svg class="sort-icon" viewBox="0 0 24 24" width="12" height="12">
+                    <path d="M7 10l5 5 5-5H7z" fill="white"/>
+                  </svg>
+                </th>
+                <th>Ціна (грн)</th>
+                <th class="sortable" data-sort="products_number">
+                  Кількість
+                  <svg class="sort-icon" viewBox="0 0 24 24" width="12" height="12">
+                    <path d="M7 10l5 5 5-5H7z" fill="white"/>
+                  </svg>
+                </th>
+                <th>Акція</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>123456789012</td>
+                <td>Молоко 2.5%</td>
+                <td>28.00</td>
+                <td>43</td>
+                <td>Ні</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Пагінація -->
+          <div class="product-pagination">
+            <button class="pagination-btn">&lt;</button>
+            <span class="pagination-info">1 з 1</span>
+            <button class="pagination-btn">&gt;</button>
+          </div>
+
+          <!-- Кнопки дій -->
+          <div class="product-actions">
+            <button class="product-report-btn">Сформувати звіт</button>
+            <button class="product-new-btn">Додати товар у магазин</button>
           </div>
         </div>
       </div>
