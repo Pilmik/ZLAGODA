@@ -717,7 +717,10 @@ class ManagerController{
             }
             return res.status(200).json({message: "Продукт видалено"});
         } catch (err) {
-            console.error("Помилка видалення продукту: ", err.stack);
+            console.error("Помилка видалення товару:", err.stack);
+            if (err.code === '23503') {
+                return res.status(400).json({ message: "Товар має зв'язки з товаром у магазині. Видалення неможливе" });
+            }
             return res.status(500).json({ message: "Помилка сервера" }); 
         }
     }
@@ -726,7 +729,7 @@ class ManagerController{
         try {
             const {search, promotional, sorting} = req.query;
 
-            let query = `SELECT sp.UPC, p.product_name, sp.selling_price, sp.products_number 
+            let query = `SELECT sp.UPC, p.product_name, sp.selling_price, sp.products_number, sp.promotional_product
                         FROM Store_Product sp
                         JOIN Product p ON sp.id_product = p.id_product`;
             const params = []
@@ -784,12 +787,12 @@ class ManagerController{
             }
 
             const query = `
-                SELECT sp.UPC, p.product_name, sp.selling_price, sp.products_number,
+                SELECT sp.upc, p.product_name, sp.selling_price, sp.products_number,
                        sp.promotional_product, p.characteristics,
-                       CASE WHEN sp.promotional_product = false THEN sp.UPC_prom ELSE NULL END AS UPC_prom
+                       CASE WHEN sp.promotional_product = false THEN sp.upc_prom ELSE NULL END AS upc_prom
                 FROM Store_Product sp
                 JOIN Product p ON sp.id_product = p.id_product
-                WHERE sp.UPC = $1
+                WHERE sp.upc = $1
             `;
             const result = await pool.query(query, [upc]);
 
@@ -813,7 +816,6 @@ class ManagerController{
                 selling_price,
                 products_number,
                 promotional_product,
-                UPC_prom,
                 id_product
             } = req.body;
 
@@ -851,7 +853,7 @@ class ManagerController{
             }
 
             let finalPrice = null;
-            let finalUPCProm = UPC_prom;
+            //let finalUPCProm = UPC_prom;
 
             if (promotional_product) {
                 if (!regularProduct) {
@@ -866,16 +868,6 @@ class ManagerController{
                 finalUPCProm = null;
             } else {
                 finalPrice = validatePrice(selling_price);
-
-                if (UPC_prom) {
-                    const promProduct = await pool.query(
-                        'SELECT 1 FROM Store_Product WHERE UPC = $1 AND promotional_product = true AND id_product = $2',
-                        [UPC_prom, id_product]
-                    );
-                    if (promProduct.rowCount === 0) {
-                        return res.status(400).json({ message: 'Вказаний UPC_prom не існує або не є акційним товаром або не відповідає id_product' });
-                    }
-                }
             }
 
             const upc = await generateUPC();
@@ -886,16 +878,16 @@ class ManagerController{
 
                 const result = await client.query(
                     `INSERT INTO Store_Product (
-                        UPC, selling_price, products_number, promotional_product, UPC_prom, id_product
+                        upc, selling_price, products_number, promotional_product, id_product
                     ) VALUES ($1, $2, $3, $4, $5, $6)
                     RETURNING *`,
-                    [upc, finalPrice, products_number, promotional_product, finalUPCProm, id_product]
+                    [upc, finalPrice, products_number, promotional_product, id_product]
                 );
 
                 if (promotional_product) {
                     await client.query(
                         `UPDATE Store_Product 
-                         SET UPC_prom = $1, products_number = products_number - $2
+                         SET upc_prom = $1, products_number = products_number - $2
                          WHERE id_product = $3 AND promotional_product = false`,
                         [upc, products_number, id_product]
                     );
@@ -936,14 +928,14 @@ class ManagerController{
             }
 
             const existingProduct = await pool.query(
-                'SELECT id_product, promotional_product, products_number, selling_price FROM Store_Product WHERE UPC = $1',
+                'SELECT id_product, promotional_product, products_number, upc_prom, selling_price FROM Store_Product WHERE upc = $1',
                 [upc]
             );
             if (existingProduct.rowCount === 0) {
                 return res.status(400).json({ message: 'Товар із вказаним UPC не знайдено' });
             }
-            const { promotional_product, products_number: oldProductsNumber, id_product: oldIdProduct, UPC_prom, selling_price: oldSellingPrice } = existingProduct.rows[0];
-            if (!promotional_product && id_product && id_product !== oldIdProduct && UPC_prom) {
+            const { promotional_product, products_number: oldProductsNumber, id_product: oldIdProduct, upc_prom, selling_price: oldSellingPrice } = existingProduct.rows[0];
+            if (!promotional_product && id_product && id_product !== oldIdProduct && upc_prom) {
                 return res.status(400).json({ message: 'Не можна змінити id_product для звичайного товару, якщо він пов’язаний із акційним (UPC_prom не порожній)' });
             }
             const targetIdProduct = id_product || oldIdProduct;
@@ -1011,12 +1003,13 @@ class ManagerController{
                     const regularProduct = existingProducts.rows.find(p => !p.promotional_product);
                     if (regularProduct) {
                         const delta = parsedProductsNumber - oldProductsNumber;
-                        await client.query(
+                        if (delta >= 0) {
+                            await client.query(
                             `UPDATE Store_Product 
                              SET products_number = products_number - $1
                              WHERE id_product = $2 AND promotional_product = false`,
-                            [delta, targetIdProduct]
-                        );
+                            [delta, targetIdProduct]);
+                        }      
                     }
                 }
 
@@ -1039,23 +1032,23 @@ class ManagerController{
 
     async deleteStoreProduct(req, res) {
         try {
-            const { upc } = req.params;
+            const upc = req.params.upc;
 
             if (!/^[0-9]{12}$/.test(upc)) {
                 return res.status(400).json({ message: 'Некоректний формат UPC: має бути 12 цифр' });
             }
 
             const existingProduct = await pool.query(
-                'SELECT id_product, promotional_product, products_number, UPC_prom FROM Store_Product WHERE UPC = $1',
+                'SELECT id_product, promotional_product, products_number, upc_prom FROM Store_Product WHERE UPC = $1',
                 [upc]
             );
             if (existingProduct.rowCount === 0) {
                 return res.status(404).json({ message: 'Товар із вказаним UPC не знайдено' });
             }
 
-            const { promotional_product, UPC_prom } = existingProduct.rows[0];
+            const { promotional_product, upc_prom } = existingProduct.rows[0];
 
-            if (!promotional_product && UPC_prom) {
+            if (!promotional_product && upc_prom) {
                 return res.status(400).json({ message: 'Не можна видалити звичайний товар, якщо він пов’язаний із акційним (UPC_prom не порожній)' });
             }
 
