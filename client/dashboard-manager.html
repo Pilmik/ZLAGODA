@@ -113,10 +113,9 @@
           <table class="product-table">
             <thead>
               <tr>
-                <th>Номер</th>
-                <th>Категорія</th>
+                <th>ID</th>
+                <th>Номер категорії</th>
                 <th>Назва товару</th>
-                <th>Деталі</th>
               </tr>
             </thead>
             <tbody>
@@ -223,15 +222,6 @@
           </div>
         </div>
       </div>
-
-      <!-- ======= Інші секції (поки приховані) ======= -->
-      <div id="products" style="display:none"></div>
-      <div id="store-products" style="display:none"></div>
-      <div id="categories" style="display:none"></div>
-      <div id="sale" style="display:none"></div>
-      <div id="loyal-clients" style="display:none"></div>
-      <div id="receipts" style="display:none"></div>
-      <div id="profile" style="display:none"></div>
     </div>
   </main>
 
@@ -580,6 +570,56 @@
         <div class="modal-actions">
           <button class="btn-outline" type="button" id="cancelCategoryReport">Скасувати</button>
           <button class="btn-filled" type="submit">Завантажити PDF</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Модалка перегляду товару -->
+<div class="modal-overlay" id="productModal" style="display: none;">
+  <div class="modal">
+    <span class="modal-close" id="closeProductModal">&times;</span>
+    <h2 id="productModalTitle">Товар:</h2>
+    <ul class="modal-list" id="productDetailsList">
+      <!-- Дані вставляються JS-ом -->
+    </ul>
+    <div class="modal-actions">
+      <button class="btn-outline" id="deleteProductBtn">Видалити</button>
+      <button class="btn-filled" id="editProductBtn">Редагувати</button>
+    </div>
+  </div>
+</div>
+
+  <!-- Модалка створення/редагування товару -->
+  <div class="modal-overlay" id="addProductModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" id="closeAddProductModal">&times;</span>
+      <h2 id="addProductModalTitle">Новий товар</h2>
+      <form class="modal-form" id="productForm">
+        <input type="hidden" name="id_product" />
+
+        <div class="form-group">
+          <label>Назва товару:
+            <input type="text" name="product_name" placeholder="Наприклад, Молоко" required />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Категорія:
+            <select name="category_number" required>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Характеристики:
+            <textarea name="characteristics" placeholder="Склад, об’єм, бренд..." rows="3" maxlength="100" required></textarea>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-outline" type="button" id="cancelAddProduct">Скасувати</button>
+          <button class="btn-filled" type="submit" id="submitProductBtn">Додати</button>
         </div>
       </form>
     </div>
