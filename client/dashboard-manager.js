@@ -19,6 +19,8 @@ let currentEmployee = null;
 let token = null; 
 // Зберігатиме всі категорії для доступу в модалках
 let categories = []; 
+// зберігає товари у магазині
+let storeProducts = []; 
 
 // ===================== DOMContentLoaded =====================
   document.addEventListener("DOMContentLoaded", () => {
@@ -35,6 +37,30 @@ let categories = [];
       e.preventDefault();
       document.querySelector(".client-search-btn").click();
     }
+  });
+
+  // ==== СОРТУВАННЯ ДЛЯ ТОВАРІВ У МАГАЗИНІ ====
+  let currentSort = { field: null, direction: 'asc' };
+
+  document.querySelectorAll('.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const field = th.dataset.sort;
+      const isSameField = currentSort.field === field;
+      currentSort.direction = isSameField && currentSort.direction === 'asc' ? 'desc' : 'asc';
+      currentSort.field = field;
+
+      document.querySelectorAll('.sortable .sort-icon').forEach(icon => {
+        icon.classList.remove('sort-asc', 'sort-desc');
+      });
+
+      const icon = th.querySelector(".sort-icon");
+        if (icon) {
+          icon.classList.remove("sort-asc", "sort-desc");
+          icon.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+
+      sortTableData(field, currentSort.direction);
+    });
   });
 
   function safeAddListener(selector, type, handler) {
@@ -483,6 +509,42 @@ let categories = [];
     });
   });
 });
+
+function renderStoreProductTable() {
+  const tbody = document.querySelector("#store-products .product-table tbody");
+  const count = document.querySelector("#store-products .products-count");
+  tbody.innerHTML = "";
+
+  storeProducts.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.upc}</td>
+      <td>${item.product_name}</td>
+      <td>${item.selling_price}</td>
+      <td>${item.products_number}</td>
+      <td>${item.promotional_product ? "Так" : "Ні"}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  count.textContent = `Усього знайдено: ${storeProducts.length}`;
+}
+
+function sortTableData(field, direction) {
+  storeProducts = [...storeProducts].sort((a, b) => {
+    let aVal = a[field];
+    let bVal = b[field];
+
+    if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+    if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  renderStoreProductTable(); 
+}
 
 // ===================== ФУНКЦІЇ =====================
 
@@ -952,7 +1014,7 @@ function openProductModal(prod) {
     <li><strong>Назва:</strong> ${prod.product_name}</li>
     <li><strong>Категорія:</strong> ${categoryName}</li>
     <li><strong>Номер категорії:</strong> ${prod.category_number}</li>
-    <li><strong>Опис:</strong> ${prod.characteristics || "-"}</li>
+    <li><strong>Опис:</strong> <span class="modal-description">${prod.characteristics || "-"}</span></li>
   `;
 
   modal.style.display = "flex";
