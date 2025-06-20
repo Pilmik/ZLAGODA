@@ -35,6 +35,11 @@ let token = null;
     }
   });
 
+  function safeAddListener(selector, type, handler) {
+    const el = document.querySelector(selector);
+    if (el) el.addEventListener(type, handler);
+  }
+
   // === ВІДКРИТТЯ/ЗАКРИТТЯ модалки клієнтського звіту ===
   document.querySelector(".client-report-btn").addEventListener("click", () => {
     document.getElementById("clientReportModal").style.display = "flex";
@@ -48,6 +53,25 @@ let token = null;
   document.getElementById("clientReportModal").addEventListener("click", (e) => {
     if (e.target.id === "clientReportModal") {
       document.getElementById("clientReportModal").style.display = "none";
+    }
+  });
+
+  // === ВІДКРИТТЯ/ЗАКРИТТЯ модалки звіту категорій ===
+  safeAddListener("#categories .employee-report-btn", "click", () => {
+    document.getElementById("categoryReportModal").style.display = "flex";
+  });
+
+  safeAddListener("#closeCategoryReportModal", "click", () => {
+    document.getElementById("categoryReportModal").style.display = "none";
+  });
+
+  safeAddListener("#cancelCategoryReport", "click", () => {
+    document.getElementById("categoryReportModal").style.display = "none";
+  });
+
+  safeAddListener("#categoryReportModal", "click", (e) => {
+    if (e.target.id === "categoryReportModal") {
+      document.getElementById("categoryReportModal").style.display = "none";
     }
   });
 
@@ -75,6 +99,13 @@ let token = null;
   const searchBtn = document.querySelector(".employee-search-btn");
   const searchInput = document.querySelector(".employee-search");
 
+  searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    searchBtn.click();
+  }
+});
+
   const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", (e) => {
@@ -86,6 +117,17 @@ let token = null;
 
   // Першочергове завантаження працівників
   fetchEmployees();
+
+  document.querySelector("#categories .employee-search-btn").addEventListener("click", () => {
+    fetchCategories(); 
+  });
+
+  document.querySelector("#categories .category-search").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.querySelector("#categories .employee-search-btn").click();
+    }
+  });
 
     // === Новий клієнт: відкриття модалки ===
     document.querySelector(".client-new-btn").addEventListener("click", () => {
@@ -135,6 +177,85 @@ let token = null;
         alert(data.message || "Помилка");
       }
   });
+
+    // === НОВА КАТЕГОРІЯ: відкриття модалки ===
+    document.querySelector(".category-new-btn").addEventListener("click", () => {
+      document.getElementById("categoryModalTitle").textContent = "Нова категорія";
+      document.getElementById("submitCategoryBtn").textContent = "Додати";
+      document.querySelector("#categoryForm").reset();
+      isEditMode = false;
+      currentEditingId = null;
+      document.getElementById("addCategoryModal").style.display = "flex";
+    });
+
+  // === Submit форми додавання/редагування категорії ===
+  document.querySelector("#categoryForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const raw = {
+      category_number: currentEditingId,
+      category_name: formData.get("category_name"),
+    };
+
+    const method = isEditMode ? "PUT" : "POST";
+    const url = `/dashboard-manager/category`;
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(raw),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || (isEditMode ? "Категорію оновлено." : "Категорію додано."));
+        form.reset();
+        document.getElementById("addCategoryModal").style.display = "none";
+        fetchCategories(); 
+        isEditMode = false;
+        currentEditingId = null;
+        document.querySelector("#submitCategoryBtn").textContent = "Додати";
+        document.querySelector("#categoryModalTitle").textContent = "Нова категорія";
+      } else {
+        alert(data.message || "Помилка");
+      }
+    } catch (err) {
+      alert("Помилка при з'єднанні з сервером.");
+      console.error(err);
+    }
+  });
+
+  // === Закриття модалки: кнопка "Скасувати" ===
+  document.getElementById("cancelAddCategory").addEventListener("click", () => {
+    document.querySelector("#categoryForm").reset();
+    document.getElementById("addCategoryModal").style.display = "none";
+    isEditMode = false;
+    currentEditingId = null;
+  });
+
+  // === Закриття модалки: хрестик ===
+  document.getElementById("closeAddCategoryModal").addEventListener("click", () => {
+    document.querySelector("#categoryForm").reset();
+    document.getElementById("addCategoryModal").style.display = "none";
+    isEditMode = false;
+    currentEditingId = null;
+  });
+
+  // === Закриття модалки по кліку на overlay ===
+  document.getElementById("addCategoryModal").addEventListener("click", (e) => {
+    if (e.target.id === "addCategoryModal") {
+      document.querySelector("#categoryForm").reset();
+      document.getElementById("addCategoryModal").style.display = "none";
+      isEditMode = false;
+      currentEditingId = null;
+    }
+  });
+
 
   // === Закриття кнопкою або overlay ===
   document.getElementById("cancelAddClient").addEventListener("click", () => {
@@ -248,17 +369,17 @@ let token = null;
 
   // Кнопка "Додати працівника" — ініціалізує модалку
   document.querySelector(".employee-new-btn").addEventListener("click", () => {
-  const passwordInput = document.getElementById("passwordField");
-  passwordInput.disabled = false;
-  passwordInput.style.backgroundColor = "";
-  passwordInput.style.cursor = "text";
-  
-  document.querySelector("#addEmployeeModal h2").textContent = "Новий працівник";
-  document.querySelector("#addEmployeeModal .btn-filled").textContent = "Додати";
-  isEditMode = false;
-  currentEditingId = null;
-  document.getElementById("addEmployeeModal").style.display = "flex";
-});
+    const passwordInput = document.getElementById("passwordField");
+    passwordInput.disabled = false;
+    passwordInput.style.backgroundColor = "";
+    passwordInput.style.cursor = "text";
+    
+    document.querySelector("#addEmployeeModal h2").textContent = "Новий працівник";
+    document.querySelector("#addEmployeeModal .btn-filled").textContent = "Додати";
+    isEditMode = false;
+    currentEditingId = null;
+    document.getElementById("addEmployeeModal").style.display = "flex";
+  });
 
   // Закриття модалки по кліку на overlay — лише в режимі створення
   const addModal = document.getElementById("addEmployeeModal");
@@ -319,6 +440,9 @@ let token = null;
         if (section === "clients") {
           fetchClients();
         }
+        if (section === "categories") {
+        fetchCategories();
+      }
       }
     });
   });
@@ -483,6 +607,16 @@ document.getElementById("clientModal").addEventListener("click", (e) => {
   }
 });
 
+// Закриття модалки категорії
+document.getElementById("closeCategoryModal").addEventListener("click", () => {
+  document.getElementById("categoryModal").style.display = "none";
+});
+document.getElementById("categoryModal").addEventListener("click", (e) => {
+  if (e.target.id === "categoryModal") {
+    document.getElementById("categoryModal").style.display = "none";
+  }
+});
+
 // Видалення клієнта
 async function deleteClient(card_number) {
   if (!confirm(`Ви дійсно хочете видалити клієнта ${card_number}?`)) return;
@@ -500,7 +634,6 @@ async function deleteClient(card_number) {
     alert(err.message || "Помилка при видаленні клієнта.");
   }
 }
-
 
 // Відкриття модального вікна з деталями працівника
 function openEmployeeModal(emp) {
@@ -560,6 +693,27 @@ function openEmployeeModal(emp) {
   };
 }
 
+function openCategoryModal(cat) {
+  const modal = document.getElementById("categoryModal");
+  modal.querySelector("#categoryModalTitle").textContent = `Номер: ${cat.category_number}`;
+  modal.querySelector("#categoryName").textContent = cat.category_name;
+
+  modal.style.display = "flex";
+  currentEditingId = cat.category_number;
+
+  document.getElementById("deleteCategoryBtn").onclick = () => deleteCategory(cat.category_number);
+  document.getElementById("editCategoryBtn").onclick = () => {
+    modal.style.display = "none";
+    const form = document.querySelector("#categoryForm");
+    document.getElementById("addCategoryModal").style.display = "flex";
+    document.getElementById("categoryModalTitle").textContent = `Редагування: ${cat.category_number}`;
+    document.getElementById("submitCategoryBtn").textContent = "Готово";
+    form.category_name.value = cat.category_name;
+    isEditMode = true;
+    currentEditingId = cat.category_number;
+  };
+}
+
 // Видалення працівника
 async function deleteEmployee(id) {
   if (!confirm(`Ви дійсно хочете видалити працівника ${id}?`)) return;
@@ -575,5 +729,62 @@ async function deleteEmployee(id) {
   } else {
     const err = await res.json();
     alert(err.message || "Помилка при видаленні.");
+  }
+}
+
+async function fetchCategories() {
+  const token = localStorage.getItem("token");
+  const searchValue = document.querySelector(".category-search")?.value.trim() || "";
+
+  const url = `/dashboard-manager/category${searchValue ? `?name=${encodeURIComponent(searchValue)}` : ""}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    renderCategoryTable(data);
+  } catch (err) {
+    console.error("Помилка завантаження категорій:", err.message);
+    renderCategoryTable([]);
+  }
+}
+
+function renderCategoryTable(data) {
+  const tbody = document.querySelector("#categories .employee-table tbody");
+  const count = document.querySelector("#categories .employee-count");
+  tbody.innerHTML = "";
+
+  data.forEach(cat => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${cat.category_number}</td>
+      <td>${cat.category_name}</td>
+    `;
+    row.addEventListener("click", () => openCategoryModal(cat));
+    tbody.appendChild(row);
+  });
+
+  count.textContent = `Усього знайдено: ${data.length}`;
+}
+
+async function deleteCategory(id) {
+  if (!confirm(`Ви дійсно хочете видалити категорію ${id}?`)) return;
+  try {
+    const res = await fetch(`/dashboard-manager/category/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || "Категорію видалено.");
+      document.getElementById("categoryModal").style.display = "none";
+      fetchCategories();
+    } else {
+      alert(data.message || "Помилка при видаленні.");
+    }
+  } catch (err) {
+    alert("Помилка з'єднання з сервером.");
+    console.error(err);
   }
 }

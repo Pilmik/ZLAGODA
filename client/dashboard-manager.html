@@ -175,7 +175,7 @@
           <!-- Кнопки дій -->
           <div class="employee-actions">
             <button class="employee-report-btn">Сформувати звіт</button>
-            <button class="employee-new-btn">Нова категорія</button>
+            <button class="category-new-btn">Нова категорія</button>
           </div>
         </div>
       </div>
@@ -518,6 +518,67 @@
 
         <div class="modal-actions">
           <button class="btn-outline" type="button" id="cancelClientReport">Скасувати</button>
+          <button class="btn-filled" type="submit">Завантажити PDF</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Модалка нової категорії товару-->
+  <div class="modal-overlay" id="addCategoryModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" id="closeAddCategoryModal">&times;</span>
+      <h2 id="categoryModalTitle">Нова категорія</h2>
+      <form class="modal-form" id="categoryForm">
+        <input type="hidden" name="category_number" />
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Назва категорії:
+            <input type="text" name="category_name" placeholder="Наприклад, Молочні продукти" required />
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-outline" type="button" id="cancelAddCategory">Скасувати</button>
+          <button class="btn-filled" type="submit" id="submitCategoryBtn">Додати</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Модалка перегляду категорії товару-->
+  <div class="modal-overlay" id="categoryModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" id="closeCategoryModal">&times;</span>
+      <h2 id="categoryModalTitle">Номер: </h2>
+      <ul class="modal-list" id="categoryDetailsList">
+        <li><strong>Назва категорії</strong> <span id="categoryName"></span></li>
+      </ul>
+      <div class="modal-actions">
+        <button class="btn-outline" id="deleteCategoryBtn">Видалити</button>
+        <button class="btn-filled" id="editCategoryBtn">Редагувати</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка звіту для категорій -->
+  <div class="modal-overlay" id="categoryReportModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" id="closeCategoryReportModal">&times;</span>
+      <h2>Сформувати звіт</h2>
+      <form class="modal-form" id="categoryReportForm">
+        <div class="form-group">
+          <label>Період з:
+            <input type="date" name="start_date" required>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>до:
+            <input type="date" name="end_date" required>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-outline" type="button" id="cancelCategoryReport">Скасувати</button>
           <button class="btn-filled" type="submit">Завантажити PDF</button>
         </div>
       </form>
