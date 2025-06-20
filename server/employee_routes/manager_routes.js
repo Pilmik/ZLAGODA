@@ -26,4 +26,10 @@ router.post("/category", authMiddleware, roleMiddleware(["MANAGER"]), controller
 router.put("/category", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateCategory)
 router.delete("/category/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteCategory)
 
+router.get("/products", authMiddleware, roleMiddleware(["MANAGER"]), controller.getAllProducts)
+router.get("/products/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.getProductById)
+router.post("/products", authMiddleware, roleMiddleware(["MANAGER"]), controller.createProduct)
+router.put("/products", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateProductInfo)
+router.delete("/products/:id", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteProduct)
+
 module.exports = router;

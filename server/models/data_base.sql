@@ -34,3 +34,11 @@ CREATE TABLE Category(
     category_number SERIAL PRIMARY KEY,
     category_name VARCHAR(50) UNIQUE NOT NULL
 );
+
+CREATE TABLE Product(
+    id_product SERIAL PRIMARY KEY,
+    product_name VARCHAR(50) NOT NULL,
+    characteristics VARCHAR(100) NOT NULL,
+    category_number INTEGER NOT NULL,
+    FOREIGN KEY (category_number) REFERENCES Category (category_number) ON DELETE NO ACTION ON UPDATE CASCADE
+);
