@@ -1,7 +1,9 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const {pool} = require("../models/db.js");
+const {generateUPC} = require("../utils/upcGenerator.js")
 const {generateDisplayId} = require("../utils/idGenerator.js")
+const {validatePrice} = require("../validators/validatePrice.js")
 
 class ManagerController{
     async openDashboard(req, res){
@@ -718,7 +720,368 @@ class ManagerController{
             console.error("Помилка видалення продукту: ", err.stack);
             return res.status(500).json({ message: "Помилка сервера" }); 
         }
+    }
 
+    async getAllStoreProducts(req, res) {
+        try {
+            const {search, promotional, sorting} = req.query;
+
+            let query = `SELECT sp.UPC, p.product_name, sp.selling_price, sp.products_number 
+                        FROM Store_Product sp
+                        JOIN Product p ON sp.id_product = p.id_product`;
+            const params = []
+            let conditions = []
+            
+            if (search) {
+                const cleanSearch = search.trim();
+                if (cleanSearch.length > 50) {
+                    return res.status(400).json({message: "Перевищена максимальна кількість символів"});
+                }
+                if (/^[0-9]{12}$/.test(cleanSearch)) {
+                    conditions.push(`sp.UPC = $${params.length + 1}`);
+                    params.push(cleanSearch);
+                } else {
+                    conditions.push(`p.product_name ILIKE $${params.length + 1}`);
+                    params.push(`%${cleanSearch}%`);
+                }
+            }
+            if (promotional !== undefined) {
+                if (!['true', 'false'].includes(promotional)) {
+                    return res.status(400).json({ message: 'Некоректне значення promotional: має бути true або false' });
+                }
+                const isPromotional = promotional === 'true';
+                conditions.push(`sp.promotional_product = $${conditions.length + 1}`);
+                params.push(isPromotional);
+            }
+
+            if (conditions.length > 0) {
+                query += ` WHERE ${conditions.join(' AND ')}`
+            }
+            
+            const validSortFields = ['products_number', 'product_name'];
+            const sortField = validSortFields.includes(sorting) ? sorting : 'products_number';
+            query += ` ORDER BY ${sortField === 'product_name' ? 'p.product_name' : 'sp.products_number'} ASC`;
+
+            const result = await pool.query(query, params);
+
+            res.status(200).json({
+                message: result.rowCount > 0 ? 'Товари знайдено' : 'Товари не знайдено',
+                store_products: result.rows
+            });
+
+        } catch (err) {
+            console.error('Помилка отримання товарів:', err.message);
+            res.status(500).json({ message: 'Помилка сервера' });
+        }
+    }
+
+    async getStoreProductByUPC(req, res) {
+        try {
+            const { upc } = req.params;
+
+            if (!/^[0-9]{12}$/.test(upc)) {
+                return res.status(400).json({ message: 'Некоректний формат UPC' });
+            }
+
+            const query = `
+                SELECT sp.UPC, p.product_name, sp.selling_price, sp.products_number,
+                       sp.promotional_product, p.characteristics,
+                       CASE WHEN sp.promotional_product = false THEN sp.UPC_prom ELSE NULL END AS UPC_prom
+                FROM Store_Product sp
+                JOIN Product p ON sp.id_product = p.id_product
+                WHERE sp.UPC = $1
+            `;
+            const result = await pool.query(query, [upc]);
+
+            if (result.rowCount === 0) {
+                return res.status(400).json({ message: 'Товар із вказаним UPC не знайдено' });
+            }
+
+            res.status(200).json({
+                message: 'Товар знайдено',
+                store_product: result.rows[0]
+            });
+        } catch (err) {
+            console.error('Помилка отримання товару:', err.message);
+            res.status(500).json({ message: 'Помилка сервера' });
+        }
+    }
+
+    async createStoreProduct(req, res) {
+        try {
+            const {
+                selling_price,
+                products_number,
+                promotional_product,
+                UPC_prom,
+                id_product
+            } = req.body;
+
+            if (!id_product || products_number === undefined || promotional_product === undefined) {
+                return res.status(400).json({ message: 'Відсутні обов’язкові поля: id_product, products_number, promotional_product' });
+            }
+            if (!promotional_product && !selling_price) {
+                return res.status(400).json({ message: 'Для звичайного товару selling_price є обов’язковим' });
+            }
+
+            const parsedProductsNumber = parseInt(products_number, 10);
+            if (!Number.isInteger(parsedProductsNumber) || parsedProductsNumber < 0) {
+                return res.status(400).json({ message: 'Некоректне значення поля products_number' });
+            }
+
+            const productCheck = await pool.query(
+                'SELECT 1 FROM Product WHERE id_product = $1',
+                [id_product]
+            );
+            if (productCheck.rowCount === 0) {
+                return res.status(400).json({ message: 'id_product не існує в таблиці Product' });
+            }
+
+            const existingProducts = await pool.query(
+                'SELECT UPC, selling_price, products_number, promotional_product FROM Store_Product WHERE id_product = $1',
+                [id_product]
+            );
+            if (existingProducts.rowCount >= 2) {
+                return res.status(400).json({ message: 'Для цього id_product уже існує максимум два записи (звичайний і акційний)' });
+            }
+
+            const regularProduct = existingProducts.rows.find(p => !p.promotional_product);
+            if (!promotional_product && regularProduct) {
+                return res.status(400).json({ message: 'Звичайний товар для цього id_product уже існує' });
+            }
+
+            let finalPrice = null;
+            let finalUPCProm = UPC_prom;
+
+            if (promotional_product) {
+                if (!regularProduct) {
+                    return res.status(400).json({ message: 'Спочатку створіть звичайний товар для цього id_product' });
+                }
+
+                if (products_number > regularProduct.products_number) {
+                    return res.status(400).json({ message: 'Кількість акційного товару не може перевищувати кількість звичайного' });
+                }
+
+                finalPrice = validatePrice((regularProduct.selling_price * 0.8).toFixed(4));
+                finalUPCProm = null;
+            } else {
+                finalPrice = validatePrice(selling_price);
+
+                if (UPC_prom) {
+                    const promProduct = await pool.query(
+                        'SELECT 1 FROM Store_Product WHERE UPC = $1 AND promotional_product = true AND id_product = $2',
+                        [UPC_prom, id_product]
+                    );
+                    if (promProduct.rowCount === 0) {
+                        return res.status(400).json({ message: 'Вказаний UPC_prom не існує або не є акційним товаром або не відповідає id_product' });
+                    }
+                }
+            }
+
+            const upc = await generateUPC();
+
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
+
+                const result = await client.query(
+                    `INSERT INTO Store_Product (
+                        UPC, selling_price, products_number, promotional_product, UPC_prom, id_product
+                    ) VALUES ($1, $2, $3, $4, $5, $6)
+                    RETURNING *`,
+                    [upc, finalPrice, products_number, promotional_product, finalUPCProm, id_product]
+                );
+
+                if (promotional_product) {
+                    await client.query(
+                        `UPDATE Store_Product 
+                         SET UPC_prom = $1, products_number = products_number - $2
+                         WHERE id_product = $3 AND promotional_product = false`,
+                        [upc, products_number, id_product]
+                    );
+                }
+
+                await client.query('COMMIT');
+                res.status(200).json({
+                    message: 'Товар успішно створено',
+                    store_product: result.rows[0]
+                });
+            } catch (err) {
+                await client.query('ROLLBACK');
+                throw err;
+            } finally {
+                client.release();
+            }    
+        } catch (err) {
+            console.error('Помилка створення товару:', err.message);
+            res.status(500).json({ message: 'Помилка сервера' });
+        }
+    }
+
+    async updateStoreProduct(req, res) {
+        try {
+            const { upc, selling_price, products_number, id_product } = req.body;
+
+            if (!upc || products_number === undefined) {
+                return res.status(400).json({ message: 'Відсутні обов’язкові поля: upc, products_number' });
+            }
+
+            if (!/^[0-9]{12}$/.test(upc)) {
+                return res.status(400).json({ message: 'Некоректний формат UPC: має бути 12 цифр' });
+            }
+
+            const parsedProductsNumber = parseInt(products_number, 10);
+            if (!Number.isInteger(parsedProductsNumber) || parsedProductsNumber < 0) {
+                return res.status(400).json({ message: 'Некоректне значення поля products_number' });
+            }
+
+            const existingProduct = await pool.query(
+                'SELECT id_product, promotional_product, products_number, selling_price FROM Store_Product WHERE UPC = $1',
+                [upc]
+            );
+            if (existingProduct.rowCount === 0) {
+                return res.status(400).json({ message: 'Товар із вказаним UPC не знайдено' });
+            }
+            const { promotional_product, products_number: oldProductsNumber, id_product: oldIdProduct, UPC_prom, selling_price: oldSellingPrice } = existingProduct.rows[0];
+            if (!promotional_product && id_product && id_product !== oldIdProduct && UPC_prom) {
+                return res.status(400).json({ message: 'Не можна змінити id_product для звичайного товару, якщо він пов’язаний із акційним (UPC_prom не порожній)' });
+            }
+            const targetIdProduct = id_product || oldIdProduct;
+
+            if (id_product) {
+                const productCheck = await pool.query(
+                    'SELECT 1 FROM Product WHERE id_product = $1',
+                    [id_product]
+                );
+                if (productCheck.rowCount === 0) {
+                    return res.status(400).json({ message: 'id_product не існує в таблиці Product' });
+                }
+            }
+
+            if (!promotional_product && id_product && id_product !== oldIdProduct) {
+                const regularProductCheck = await pool.query(
+                    'SELECT 1 FROM Store_Product WHERE id_product = $1 AND promotional_product = false AND UPC != $2',
+                    [id_product, upc]
+                );
+                if (regularProductCheck.rowCount > 0) {
+                    return res.status(400).json({ message: 'Звичайний товар для цього id_product уже існує' });
+                }
+            }
+
+            let finalPrice = oldSellingPrice;
+
+            const existingProducts = await pool.query(
+                'SELECT UPC, selling_price, products_number, promotional_product FROM Store_Product WHERE id_product = $1 AND UPC != $2',
+                [targetIdProduct, upc]
+            );
+
+            if (promotional_product) {
+                const regularProduct = existingProducts.rows.find(p => !p.promotional_product);
+                if (!regularProduct) {
+                    return res.status(400).json({ message: 'Звичайний товар для цього id_product не існує' });
+                }
+
+                if (parsedProductsNumber > regularProduct.products_number) {
+                    return res.status(400).json({ message: 'Кількість акційного товару не може перевищувати кількість звичайного' });
+                }
+                if (oldProductsNumber === 0 && parsedProductsNumber > 0) {
+                    finalPrice = validatePrice((regularProduct.selling_price * 0.8).toFixed(4));
+                }
+            } else {
+                if (selling_price) {
+                    finalPrice = validatePrice(selling_price);
+                } else if (!promotional_product && !selling_price) {
+                    return res.status(400).json({ message: 'Для звичайного товару selling_price є обов’язковим при оновленні' });
+                }
+            }
+
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
+
+                const result = await client.query(
+                    `UPDATE Store_Product
+                     SET selling_price = $1, products_number = $2, id_product = $3
+                     WHERE UPC = $4
+                     RETURNING *`,
+                    [finalPrice, parsedProductsNumber, targetIdProduct, upc]
+                );
+
+                if (promotional_product) {
+                    const regularProduct = existingProducts.rows.find(p => !p.promotional_product);
+                    if (regularProduct) {
+                        const delta = parsedProductsNumber - oldProductsNumber;
+                        await client.query(
+                            `UPDATE Store_Product 
+                             SET products_number = products_number - $1
+                             WHERE id_product = $2 AND promotional_product = false`,
+                            [delta, targetIdProduct]
+                        );
+                    }
+                }
+
+                await client.query('COMMIT');
+                res.status(200).json({
+                    message: 'Товар успішно оновлено',
+                    store_product: result.rows[0]
+                });
+            } catch (err) {
+                await client.query('ROLLBACK');
+                throw err;
+            } finally {
+                client.release();
+            }
+        } catch (err) {
+            console.error('Помилка оновлення товару:', err.message);
+            res.status(500).json({ message: 'Помилка сервера' });
+        }
+    }
+
+    async deleteStoreProduct(req, res) {
+        try {
+            const { upc } = req.params;
+
+            if (!/^[0-9]{12}$/.test(upc)) {
+                return res.status(400).json({ message: 'Некоректний формат UPC: має бути 12 цифр' });
+            }
+
+            const existingProduct = await pool.query(
+                'SELECT id_product, promotional_product, products_number, UPC_prom FROM Store_Product WHERE UPC = $1',
+                [upc]
+            );
+            if (existingProduct.rowCount === 0) {
+                return res.status(404).json({ message: 'Товар із вказаним UPC не знайдено' });
+            }
+
+            const { promotional_product, UPC_prom } = existingProduct.rows[0];
+
+            if (!promotional_product && UPC_prom) {
+                return res.status(400).json({ message: 'Не можна видалити звичайний товар, якщо він пов’язаний із акційним (UPC_prom не порожній)' });
+            }
+
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
+
+                await client.query(
+                    'DELETE FROM Store_Product WHERE UPC = $1',
+                    [upc]
+                );
+
+                await client.query('COMMIT');
+                res.status(200).json({
+                    message: 'Товар успішно видалено'
+                });
+            } catch (err) {
+                await client.query('ROLLBACK');
+                throw err;
+            } finally {
+                client.release();
+            }
+        } catch (err) {
+            console.error('Помилка видалення товару:', err.message);
+            res.status(500).json({ message: 'Помилка сервера' });
+        }
     }
 }
 

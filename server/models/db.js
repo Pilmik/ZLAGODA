@@ -43,6 +43,25 @@ const initializeDatabase = async () => {
         } else {
         console.log("Адміністратор із id = 0 уже існує");
         }
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS upc_counter (
+                id INTEGER PRIMARY KEY,
+                last_item_number INTEGER NOT NULL DEFAULT -1
+            );
+        `);
+        const result = await pool.query(`
+            INSERT INTO upc_counter (id, last_item_number)
+            VALUES (1, -1)
+            ON CONFLICT (id) DO NOTHING;    
+        `);
+
+        if (result.rowCount > 0) {
+            console.log("Таблиця upc_counter ініціалізована")
+        } else {
+            console.log("Таблиця вже містить запис")
+        }  
+        
     } catch (e) {
         console.error("Помилка ініціалізації бази даних:", e.stack);
         throw e;
