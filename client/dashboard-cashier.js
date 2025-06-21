@@ -34,6 +34,7 @@ links.forEach(link => {
       if (sectionId === "products") fetchProducts();
       if (sectionId === "store_products") fetchStoreProducts();
       if (sectionId === "sale") initSaleSection();
+      if (sectionId === "receipts") {initReceiptsSection(); fetchTodayReceipts();}
     }
   });
 });
@@ -439,8 +440,138 @@ function updateSaleButtonState() {
   saleConfirmBtn.disabled = cart.length === 0;
 }
 
-// Logout
-document.getElementById("logout-btn").addEventListener("click", () => {
-  localStorage.removeItem("token");
-  window.location.href = "/";
-});
+// Receipts Section
+function initReceiptsSection() {
+  const filterBtn = document.getElementById("receipts-filter-btn");
+  const todayBtn = document.getElementById("receipts-today-btn");
+  const searchBtn = document.getElementById("receipts-search-btn");
+
+  filterBtn.addEventListener("click", fetchReceipts);
+  todayBtn.addEventListener("click", fetchTodayReceipts);
+  searchBtn.addEventListener("click", searchReceiptByNumber);
+
+  // Завантажуємо чеки за поточний день при вході в секцію
+  fetchTodayReceipts();
+}
+
+async function fetchReceipts() {
+  const dateStart = document.getElementById("receipts-date-start").value;
+  const dateEnd = document.getElementById("receipts-date-end").value;
+  const receiptsTableBody = document.getElementById("receipts-table-body");
+  const receiptsCount = document.querySelector(".receipts-count");
+  const totalSalesSum = document.getElementById("total-sales-sum");
+
+  let url = "/dashboard-cashier/receipts";
+  const params = [];
+  if (dateStart) params.push(`date_of_start=${encodeURIComponent(dateStart)}`);
+  if (dateEnd) params.push(`date_of_end=${encodeURIComponent(dateEnd)}`);
+  if (params.length > 0) url += `?${params.join("&")}`;
+
+  try {
+    console.log("11111")
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`Помилка запиту: ${response.status}`);
+    const data = await response.json();
+    console.log("2222")
+    renderReceipts(data.receipts, data.total_sales);
+    receiptsCount.textContent = `Усього знайдено: ${data.receipts.length}`;
+    totalSalesSum.textContent = Number(data.total_sales).toFixed(2);
+  } catch (err) {
+    console.error("Помилка:", err.message);
+    receiptsTableBody.innerHTML = `<tr><td colspan="5">Не вдалося завантажити</td></tr>`;
+    receiptsCount.textContent = `Усього знайдено: 0`;
+    totalSalesSum.textContent = "0.00";
+  }
+}
+
+async function fetchTodayReceipts() {
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("receipts-date-start").value = today;
+  document.getElementById("receipts-date-end").value = today;
+  fetchReceipts();
+}
+
+function renderReceipts(receipts, totalSales) {
+  const receiptsTableBody = document.getElementById("receipts-table-body");
+  receiptsTableBody.innerHTML = "";
+
+  if (!receipts || receipts.length === 0) {
+    receiptsTableBody.innerHTML = `<tr><td colspan="5">Чеків не знайдено</td></tr>`;
+    return;
+  }
+
+  receipts.forEach(receipt => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${receipt.check_number}</td>
+      <td>${new Date(receipt.print_date).toLocaleString("uk-UA")}</td>
+      <td>${receipt.sum_total}</td>
+      <td>${receipt.vat}</td>
+      <td>${receipt.card_number || "Немає"}</td>
+    `;
+    row.addEventListener("click", () => searchReceiptByNumber(String(receipt.check_number))); // Передаємо рядок check_number
+    receiptsTableBody.appendChild(row);
+  });
+}
+
+async function searchReceiptByNumber(checkNumber) {
+  const searchInput = document.getElementById("receipts-search-input");
+  const receiptDetails = document.getElementById("receipt-details");
+  const check_number = checkNumber || searchInput.value.trim();
+
+  if (!check_number) {
+    receiptDetails.innerHTML = "<p>Введіть номер чеку</p>";
+    return;
+  }
+
+  if (!check_number || typeof check_number !== "string") {
+    receiptDetails.innerHTML = "<p>Некоректний номер чеку</p>";
+    console.error("Некоректний check_number:", check_number);
+    return;
+  }
+
+  try {
+    const response = await fetch(`/dashboard-cashier/receipts/${encodeURIComponent(check_number)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log(encodeURIComponent(check_number))
+    if (!response.ok) throw new Error(`Помилка запиту: ${response.status}`);
+    const receipt = await response.json();
+
+    receiptDetails.innerHTML = `
+      <h3>Чек №${receipt.check_number}</h3>
+      <p><strong>Дата:</strong> ${new Date(receipt.print_date).toLocaleString("uk-UA")}</p>
+      <p><strong>Сума:</strong> ${receipt.sum_total} грн</p>
+      <p><strong>ПДВ:</strong> ${receipt.vat} грн</p>
+      <p><strong>Картка клієнта:</strong> ${receipt.card_number || "Немає"}</p>
+      <h4>Товари:</h4>
+      <table class="receipt-items-table">
+        <thead>
+          <tr>
+            <th>UPC</th>
+            <th>Назва</th>
+            <th>Кількість</th>
+            <th>Ціна (грн)</th>
+            <th>Сума (грн)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${receipt.items.map(item => `
+            <tr>
+              <td>${item.upc}</td>
+              <td>${item.product_name}</td>
+              <td>${item.product_number}</td>
+              <td>${item.selling_price}</td>
+              <td>${(item.product_number * item.selling_price).toFixed(2)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    receiptDetails.innerHTML = "<p>Чек не знайдено або помилка пошуку</p>";
+    console.error("Помилка:", err.message);
+  }
+}

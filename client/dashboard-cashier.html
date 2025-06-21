@@ -130,6 +130,42 @@
           <input type="text" id="sale-search-input" class="product-search" placeholder="UPC або назва товару" />
           <button id="sale-search-btn" class="product-search-btn">Пошук</button>
         </div>
+cashier-interface-update
+      </section>
+      <section id="receipts" class="section">
+        <h2>Чеки</h2>
+        <div class="table-container">
+          <div class="table-header">
+            <span class="receipts-count">Усього знайдено: 0</span>
+            <div class="search-container">
+              <label>Період з: <input type="date" id="receipts-date-start"></label>
+              <label>до: <input type="date" id="receipts-date-end"></label>
+              <button id="receipts-filter-btn">Фільтрувати</button>
+              <button id="receipts-today-btn">Сьогодні</button>
+            </div>
+            <div class="search-container">
+              <input type="text" id="receipts-search-input" placeholder="Номер чеку">
+              <button id="receipts-search-btn">Пошук</button>
+            </div>
+          </div>
+          <table class="receipts-table">
+            <thead>
+              <tr>
+                <th>Номер чеку</th>
+                <th>Дата</th>
+                <th>Сума (грн)</th>
+                <th>ПДВ (грн)</th>
+                <th>Картка клієнта</th>
+              </tr>
+            </thead>
+            <tbody id="receipts-table-body"></tbody>
+          </table>
+          <div class="total-sales">
+            <span>Загальна сума продажів: <span id="total-sales-sum">0.00</span> грн</span>
+          </div>
+        </div>
+        <div id="receipt-details" class="receipt-details"></div>
+      </section>
         <div id="sale-product-details" class="product-details-block"></div>
       </div>
 
@@ -172,9 +208,6 @@
     </div>
   </div>
 </div>
-
-
-
 
 
       <div class="modal-overlay" id="productModal" style="display: none;">
