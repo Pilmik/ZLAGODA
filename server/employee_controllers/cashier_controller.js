@@ -49,27 +49,31 @@ class CashierController{
     }
 
     async getProductById(req, res) {
-        const id = req.params.id;
+    const id = req.params.id;
 
-        if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
-            return res.status(400).json({ message: "Некоректний ID продукту" });
-        }
-
-        try {
-            const query = `
-                SELECT * FROM Product
-                WHERE id_product = $1;
-            `;
-            const result = await pool.query(query, [id]);
-            if (result.rowCount.length === 0) {
-                return res.status(400).json({ message: "Продукт не знайдено" });
-            }
-            res.status(200).json(result.rows[0]);
-        } catch (err) {
-            console.error("Помилка отримання продукту: ", err.stack);
-            return res.status(500).json({ message: "Помилка сервера" });
-        }
+    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+        return res.status(400).json({ message: "Некоректний ID продукту" });
     }
+
+    try {
+        const query = `
+            SELECT p.id_product, p.product_name, p.category_number, p.characteristics,
+                   c.category_name
+            FROM Product p
+            LEFT JOIN Category c ON p.category_number = c.category_number
+            WHERE p.id_product = $1;
+        `;
+        const result = await pool.query(query, [id]);
+        if (result.rowCount === 0) {
+            return res.status(400).json({ message: "Продукт не знайдено" });
+        }
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error("Помилка отримання продукту: ", err.stack);
+        return res.status(500).json({ message: "Помилка сервера" });
+    }
+}
+
 
     async getAllStoreProducts(req, res) {
         try {

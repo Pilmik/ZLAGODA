@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css">
 </head>
 <body>
-
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
       <div class="sidebar-logo">
@@ -16,19 +15,19 @@
         <span style="font-weight: 700; font-size: 20px;">Злагода</span>
       </div>
       <nav class="sidebar-nav">
-        <a href="dashboard.html" class="active"><i class="fi fi-rr-home"></i><span>Головна</span></a>
-        <a href="products.html"><i class="fi fi-rr-box"></i><span>Товари</span></a>
-        <a href="store-products.html"><i class="fi fi-rr-store-alt"></i><span>Товари в магазині</span></a>
-        <a href="sale.html"><i class="fi fi-rr-credit-card"></i><span>Продаж товару</span></a>
-        <a href="clients.html"><i class="fi fi-rr-users-alt"></i><span>Клієнти</span></a>
-        <a href="receipts.html"><i class="fi fi-rr-receipt"></i><span>Чеки</span></a>
-        <a href="profile.html"><i class="fi fi-rr-user"></i><span>Особистий профіль</span></a>
+        <a href="#" class="nav-link active" data-section="home"><i class="fi fi-rr-home"></i><span>Головна</span></a>
+        <a href="#" class="nav-link" data-section="products"><i class="fi fi-rr-box"></i><span>Товари</span></a>
+        <a href="#" class="nav-link" data-section="store_products"><i class="fi fi-rr-store-alt"></i><span>Товари в магазині</span></a>
+        <a href="#" class="nav-link" data-section="sale"><i class="fi fi-rr-credit-card"></i><span>Продаж товару</span></a>
+        <a href="#" class="nav-link" data-section="clients"><i class="fi fi-rr-users-alt"></i><span>Клієнти</span></a>
+        <a href="#" class="nav-link" data-section="receipts"><i class="fi fi-rr-receipt"></i><span>Чеки</span></a>
+        <a href="#" class="nav-link" data-section="profile"><i class="fi fi-rr-user"></i><span>Профіль</span></a>
       </nav>
     </div>
     <div class="sidebar-bottom">
       <div class="user-block">
         <i class="fi fi-rr-user"></i>
-        <span>Ім’я користувача</span>
+        <span id="cashier-name">Касир</span>
       </div>
       <a href="login.html" class="logout-link">
         <i class="fi fi-rr-sign-out-alt"></i><span>Вийти</span>
@@ -37,20 +36,115 @@
   </aside>
 
   <main class="main-content">
-    <h1>Панель касира</h1>
+    <div class="dashboard-wrapper" id="dashboard-content">
+      <div id="home" class="section active">
+        <h1>Панель касира</h1>
+        <div class="dashboard-grid">
+          <div class="dashboard-block">Блок 1</div>
+          <div class="dashboard-block">Блок 2</div>
+          <div class="dashboard-block">Блок 3</div>
+          <div class="dashboard-block">Блок 4</div>
+        </div>
+      </div>
+
+      <div id="products" class="section" style="display: none;">
+        <div class="product-panel">
+          <div class="product-panel-top">
+            <h2 class="products-count">Усього знайдено: 0</h2>
+            <div class="product-search-filter">
+              <input type="text" placeholder="Введіть назву товару" class="product-search" />
+              <input type="text" placeholder="Категорія або номер" class="product-category-filter" />
+              <button class="product-search-btn">Пошук</button>
+            </div>
+          </div>
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Номер категорії</th>
+                <th>Назва товару</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="product-actions">
+            <button class="product-report-btn">Сформувати звіт</button>
+          </div>
+          <div class="product-pagination">
+            <button class="pagination-btn">&lt;</button>
+            <span class="pagination-info">1 з 1</span>
+            <button class="pagination-btn">&gt;</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="store_products" class="section" style="display: none;">
+        <div class="product-panel">
+          <div class="product-panel-top">
+            <h2 class="products-count">Усього знайдено: 0</h2>
+            <div class="client-search-filter">
+              <input type="text" placeholder="Введіть UPC або назву товару" class="product-upc-search" />
+              <button class="product-search-btn">Пошук</button>
+            </div>
+            <div class="filter-buttons">
+              <button class="store-filter-btn" data-value="true">Акційні</button>
+              <button class="store-filter-btn" data-value="false">Неакційні</button>
+            </div>
+          </div>
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th>UPC</th>
+                <th class="sortable" data-sort="product_name">Назва товару</th>
+                <th>Ціна (грн)</th>
+                <th class="sortable" data-sort="products_number">Кількість</th>
+                <th>Акція</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="product-pagination">
+            <button class="pagination-btn">&lt;</button>
+            <span class="pagination-info">1 з 1</span>
+            <button class="pagination-btn">&gt;</button>
+          </div>
+          <div class="product-actions">
+            <button class="product-report-btn">Сформувати звіт</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="productModal" style="display: none;">
+        <div class="modal">
+          <span class="modal-close" id="closeProductModal">&times;</span>
+          <h2 id="productModalTitle">Товар:</h2>
+          <ul class="modal-list" id="productDetailsList"></ul>
+          <div class="modal-actions">
+            <button class="btn-filled" id="closeProductDetails">Закрити</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="productReportModal" style="display: none;">
+        <div class="modal">
+          <span class="modal-close" id="closeProductReportModal">&times;</span>
+          <h2>Сформувати звіт</h2>
+          <form class="modal-form" id="productReportForm">
+            <div class="form-group">
+              <label>Період з: <input type="date" name="start_date" required></label>
+            </div>
+            <div class="form-group">
+              <label>до: <input type="date" name="end_date" required></label>
+            </div>
+            <div class="modal-actions">
+              <button class="btn-outline" type="button" id="cancelProductReport">Скасувати</button>
+              <button class="btn-filled" type="submit">Завантажити PDF</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </main>
-
+  <script src="./dashboard-cashier.js"></script>
 </body>
-<script>
-  const token = localStorage.getItem("token");
-  if (!token){
-    window.location.href = "/"
-  }
-  const payload = JSON.parse(atob(token.split(".")[1]))
-  if (payload.roles !== "CASHIER") {
-    alert("Доступ не надано.")
-    window.location.href = "/"
-  }
-
-</script>
 </html>
