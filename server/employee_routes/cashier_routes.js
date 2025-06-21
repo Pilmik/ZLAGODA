@@ -20,6 +20,8 @@ router.put("/customers", authMiddleware, roleMiddleware(["CASHIER"]), controller
 
 router.post("/sale", authMiddleware, roleMiddleware(["CASHIER"]), controller.saleProducts)
 
+router.get('/receipts', authMiddleware, roleMiddleware(['CASHIER']), controller.getAllReceipts);
+router.get('/receipts/:check_number', authMiddleware, roleMiddleware(['CASHIER']), controller.getReceiptByNumber);
 
 
 module.exports = router;
