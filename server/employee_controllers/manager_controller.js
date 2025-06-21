@@ -1074,6 +1074,133 @@ class ManagerController{
             res.status(500).json({ message: 'Помилка сервера' });
         }
     }
+
+    async getAllReceipts(req, res) {
+        const {id, date_of_start, date_of_end} = req.query;
+        try {
+           const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+           if (id && !uuidRegex.test(id)) {
+                return res.status(400).json({ message: 'Некоректний формат ID' });
+           } 
+           if (date_of_start && !/^\d{4}-\d{2}-\d{2}$/.test(date_of_start)) {
+                return res.status(400).json({ message: 'Некоректний формат date_of_start' });
+            }
+            if (date_of_end && !/^\d{4}-\d{2}-\d{2}$/.test(date_of_end)) {
+                return res.status(400).json({ message: 'Некоректний формат date_of_end' });
+            }
+            if (date_of_start && date_of_end && date_of_start > date_of_end) {
+                return res.status(400).json({ message: 'date_of_start не може бути пізніше date_of_end' });
+            }
+
+            let conditions = [];
+            let values = [];
+            let paramIndex = 1;
+
+            if (id) {
+            conditions.push(`id_employee = $${paramIndex++}`);
+            values.push(id);
+            }
+            if (date_of_start) {
+                conditions.push(`print_date >= $${paramIndex++}`);
+                values.push(date_of_start);
+            }
+            if (date_of_end) {
+                conditions.push(`print_date <= $${paramIndex++}::date + INTERVAL '1 day'`);
+                values.push(date_of_end);
+            }
+
+            const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+            const receiptsQuery = `
+            SELECT check_number, id_employee, card_number, print_date, sum_total, vat
+            FROM Receipt
+            ${whereClause}
+            ORDER BY print_date DESC
+            `;
+            const receiptsResult = await pool.query(receiptsQuery, values);
+
+
+            const totalSalesQuery = `
+            SELECT COALESCE(SUM(s.product_number * s.selling_price), 0) AS total_sales
+            FROM Sale s
+            JOIN Receipt r ON s.check_number = r.check_number
+            ${whereClause}
+            `;
+            const totalSalesResult = await pool.query(totalSalesQuery, values);
+            const totalSales = Number(totalSalesResult.rows[0].total_sales).toFixed(4);
+
+            const receipts = receiptsResult.rows.map(row => ({
+            check_number: row.check_number,
+            id_employee: row.id_employee,
+            card_number: row.card_number || null,
+            print_date: row.print_date.toISOString(),
+            sum_total: Number(row.sum_total).toFixed(4),
+            vat: Number(row.vat).toFixed(4),
+            }));
+
+            res.status(200).json({
+                receipts,
+                total_sales: totalSales,
+            });
+            
+        } catch (err) {
+            console.error('Помилка отримання чеків:', err.message);
+            res.status(500).json({ error: 'Помилка сервера' });
+        }
+    }
+
+    async getReceiptByNumber(req, res) {
+        const { check_number } = req.params;
+        try {
+            if (!check_number) {
+                return res.status(400).json({ message: 'check_number є обов\'язковим' });
+            }
+            if (check_number.length > 15) {
+                return res.status(400).json({ message: 'Некоректний формат check_number' });
+            }
+
+            const receiptQuery = `
+                SELECT check_number, id_employee, card_number, print_date, sum_total, vat
+                FROM Receipt
+                WHERE check_number = $1
+            `;
+            const receiptResult = await pool.query(receiptQuery, [check_number]);
+
+            if (receiptResult.rows.length === 0) {
+                return res.status(400).json({ message: `Чек ${check_number} не знайдено` });
+            }
+
+            const salesQuery = `
+                SELECT s.UPC, s.product_number, s.selling_price, p.product_name
+                FROM Sale s
+                JOIN Store_Product sp ON s.UPC = sp.UPC
+                JOIN Product p ON sp.id_product = p.id_product
+                WHERE s.check_number = $1
+            `;
+            const salesResult = await pool.query(salesQuery, [check_number]);
+
+            const receipt = receiptResult.rows[0];
+            const formattedReceipt = {
+                check_number: receipt.check_number,
+                id_employee: receipt.id_employee,
+                card_number: receipt.card_number || null,
+                print_date: receipt.print_date.toISOString(),
+                sum_total: Number(receipt.sum_total).toFixed(4),
+                vat: Number(receipt.vat).toFixed(4),
+                items: salesResult.rows.map(sale => ({
+                    upc: sale.upc,
+                    product_name: sale.product_name,
+                    product_number: sale.product_number,
+                    selling_price: Number(sale.selling_price).toFixed(4),
+                })),
+            };
+
+            res.status(200).json(formattedReceipt);
+        } catch (err) {
+            console.error('Помилка пошуку чека:', err.message);
+            res.status(500).json({ err: 'Помилка сервера' });
+        }
+    }
 }
 
 module.exports = new ManagerController();
