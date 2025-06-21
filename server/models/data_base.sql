@@ -70,7 +70,7 @@ CREATE TABLE Sale(
 );
 
 CREATE TABLE Receipt(
-    check_number VARCHAR(10) PRIMARY KEY,
+    check_number VARCHAR(15) PRIMARY KEY,
     id_employee UUID NOT NULL,
     card_number UUID NULL,
     FOREIGN KEY (id_employee) REFERENCES Employee (internal_id) ON DELETE NO ACTION ON UPDATE CASCADE,
