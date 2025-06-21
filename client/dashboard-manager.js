@@ -68,6 +68,53 @@ let storeProducts = [];
     if (el) el.addEventListener(type, handler);
   }
 
+document.querySelector(".store-product-new-btn").addEventListener("click", (e) => {
+  e.stopPropagation(); // ⛔️ щоб не вспливало вище
+  document.getElementById("storeProductForm").reset();
+  document.getElementById("addStoreProductModal").style.display = "flex";
+});
+
+// Закрити модалку
+document.getElementById("closeAddStoreProductModal").addEventListener("click", () => {
+  document.getElementById("addStoreProductModal").style.display = "none";
+});
+document.getElementById("cancelAddStoreProduct").addEventListener("click", () => {
+  document.getElementById("addStoreProductModal").style.display = "none";
+});
+
+// Обробка сабміту
+document.getElementById("storeProductForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+
+  const newStoreProduct = {
+  upc: Math.floor(100000000000 + Math.random() * 900000000000).toString(), // 12-значний UPC
+  id_product: parseInt(form.id_product.value),
+  selling_price: parseFloat(form.selling_price.value),
+  products_number: parseInt(form.products_number.value),
+  promotional_product: form.promotional_product.checked,
+};
+
+  try {
+    const res = await fetch("/dashboard-manager/store_products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(newStoreProduct),
+    });
+
+    if (!res.ok) throw new Error("Не вдалося додати товар");
+
+    // Успіх
+    document.getElementById("addStoreProductModal").style.display = "none";
+    fetchStoreProducts(); // оновити список
+  } catch (err) {
+    alert("Помилка: " + err.message);
+  }
+});
+
   // === ВІДКРИТТЯ/ЗАКРИТТЯ модалки клієнтського звіту ===
   document.querySelector(".client-report-btn").addEventListener("click", () => {
     document.getElementById("clientReportModal").style.display = "flex";
@@ -179,6 +226,23 @@ let storeProducts = [];
       fetchProducts();
     }
   });
+
+  document.querySelectorAll(".store-filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const wasActive = btn.classList.contains("active");
+    // Зняти активні з усіх
+    document.querySelectorAll(".store-filter-btn").forEach(b => b.classList.remove("active"));
+
+    // Якщо вже була активна — скинути фільтр
+    if (wasActive) {
+      fetchStoreProducts(); // без фільтру
+    } else {
+      btn.classList.add("active");
+      const promoValue = btn.dataset.value === "true";
+      fetchStoreProducts("", promoValue);
+    }
+  });
+});
 
   document.querySelector(".product-category-filter").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -503,7 +567,10 @@ let storeProducts = [];
         }
         if (section === "products") {
         fetchProducts(); // завантаження всіх товарів
-      }
+        }
+        if (section === "store-products") {
+        fetchStoreProducts();
+        }
       fetchCategories(); 
       }
     });
@@ -524,6 +591,7 @@ function renderStoreProductTable() {
       <td>${item.products_number}</td>
       <td>${item.promotional_product ? "Так" : "Ні"}</td>
     `;
+    row.addEventListener("click", () => openStoreProductModal(item.upc));
     tbody.appendChild(row);
   });
 
@@ -559,6 +627,35 @@ async function fetchEmployees(cashiersOnly = false) {
   });
   const data = await res.json();
   renderEmployeeTable(data);
+}
+
+// Отримання товарів у магазині
+async function fetchStoreProducts(search = "", promo = null, sort = "products_number") {
+  try {
+    const params = new URLSearchParams();
+    if (search) params.append("search", search);
+    if (promo !== null) params.append("promotional", promo);
+    if (sort) params.append("sorting", sort);
+
+    const res = await fetch(`/dashboard-manager/store_products?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      storeProducts = data.store_products;
+      renderStoreProductTable();
+    } else {
+      storeProducts = [];
+      renderStoreProductTable();
+      alert(data.message || "Помилка при завантаженні товарів у магазині");
+    }
+  } catch (err) {
+    console.error("Помилка запиту товарів у магазині:", err.message);
+    alert("Сервер недоступний.");
+  }
 }
 
 // Клієнти — кнопки фільтра
@@ -1101,4 +1198,83 @@ async function populateCategorySelect() {
     option.disabled = true;
     select.appendChild(option);
   }
+}
+
+const idInput = document.getElementById("store-id-product");
+const priceInput = document.getElementById("store-price");
+const promoSwitch = document.getElementById("promo-switch");
+
+idInput.addEventListener("blur", async () => {
+  const id = idInput.value.trim();
+  const isPromo = promoSwitch.checked;
+  if (!id) return;
+
+  try {
+    const res = await fetch(`/dashboard-manager/store_products?search=${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+
+    const data = await res.json();
+
+    const existing = data.store_products?.filter(p => p.promotional_product === false);
+    const promo = data.store_products?.filter(p => p.promotional_product === true);
+    const regularPrice = existing[0]?.selling_price;
+
+    if (existing.length > 0 && !isPromo) {
+      alert("Звичайний товар для цього ID вже існує. Ви можете лише створити акційний.");
+      priceInput.disabled = true;
+      return;
+    }
+
+    if (isPromo && regularPrice) {
+      priceInput.value = (regularPrice * 0.8).toFixed(2);
+      priceInput.disabled = true;
+    } else {
+      priceInput.disabled = false;
+    }
+
+  } catch (error) {
+    console.error("Помилка перевірки товару:", error);
+  }
+});
+
+promoSwitch.addEventListener("change", () => {
+  idInput.dispatchEvent(new Event("blur"));
+});
+
+async function openStoreProductModal(upc) {
+  // ВІДКРИВАЄМО МОДАЛКУ ОДРАЗУ!
+  document.getElementById("viewStoreProductModal").style.display = "flex";
+
+  try {
+    const res = await fetch(`/dashboard-manager/store_products/${upc}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Не вдалося отримати товар");
+
+    const p = data.store_product;
+
+    document.getElementById("view-upc").textContent = `UPC: ${p.upc}`;
+    document.getElementById("view-product-name").textContent = p.product_name;
+    document.getElementById("view-characteristics").textContent = p.characteristics;
+    document.getElementById("view-price").textContent = p.selling_price;
+    document.getElementById("view-quantity").textContent = p.products_number;
+    document.getElementById("view-promotional").textContent = p.promotional_product ? "Так" : "Ні";
+  } catch (err) {
+    console.error("Помилка відкриття товару:", err.message);
+    alert("Не вдалося отримати інформацію про товар");
+
+    // ХОВАЄМО модалку назад, якщо помилка
+    document.getElementById("viewStoreProductModal").style.display = "none";
+  }
+}
+
+function closeStoreProductModal() {
+  document.getElementById("viewStoreProductModal").style.display = "none";
 }

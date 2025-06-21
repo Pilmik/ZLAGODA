@@ -30,13 +30,13 @@
             <span class="nav-icon"><i class="fi fi-rr-layers"></i></span>
             <span class="nav-text">Категорії товарів</span>
           </a>
-          <a href="#" class="nav-link" data-section="store-products">
-            <span class="nav-icon"><i class="fi fi-rr-store-alt"></i></span>
-            <span class="nav-text">Товари в магазині</span>
-          </a>
           <a href="#" class="nav-link" data-section="products">
             <span class="nav-icon"><i class="fi fi-rr-box"></i></span>
             <span class="nav-text">Товари</span>
+          </a>
+          <a href="#" class="nav-link" data-section="store-products">
+            <span class="nav-icon"><i class="fi fi-rr-store-alt"></i></span>
+            <span class="nav-text">Товари в магазині</span>
           </a>
           <a href="#" class="nav-link" data-section="sale">
             <span class="nav-icon"><i class="fi fi-rr-credit-card"></i></span>
@@ -219,10 +219,9 @@
               <button class="product-search-btn">Пошук</button>
             </div>
 
-            <div class="client-discount-buttons">
-              <button class="discount-btn promo-btn" data-value="promo">Акційні</button>
-
-              <button class="discount-btn" data-value="regular">Неакційні</button>
+            <div class="filter-buttons">
+              <button class="store-filter-btn" data-value="true">Акційні</button>
+              <button class="store-filter-btn" data-value="false">Неакційні</button>
             </div>
           </div>
 
@@ -268,7 +267,7 @@
           <!-- Кнопки дій -->
           <div class="product-actions">
             <button class="product-report-btn">Сформувати звіт</button>
-            <button class="product-new-btn">Додати товар у магазин</button>
+            <button class="store-product-new-btn btn-filled">Додати товар у магазині</button>
           </div>
         </div>
       </div>
@@ -716,6 +715,63 @@
           <button class="btn-filled" type="submit" id="submitProductBtn">Додати</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ========== МОДАЛКА: Додати товар у магазині ========== -->
+  <div id="addStoreProductModal" class="modal-overlay" style="display: none">
+    <div class="modal">
+      <h2>Додати товар у магазині</h2>
+      <form id="storeProductForm">
+        <div class="modal-form">
+          <div class="form-group">
+            <label for="id_product">ID товару:</label>
+            <input type="number" name="id_product" id="store-id-product" required />
+          </div>
+
+          <div class="form-group">
+            <label for="selling_price">Ціна продажу:</label>
+            <input type="number" step="0.01" name="selling_price" id="store-price" required />
+          </div>
+
+          <div class="form-group">
+            <label for="products_number">Кількість:</label>
+            <input type="number" name="products_number" required />
+          </div>
+
+          <div class="toggle-switch-row">
+            <label class="toggle-switch">
+              <span class="label-text">Акційний</span>
+              <input type="checkbox" name="promotional_product" id="promo-switch" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelAddStoreProduct" class="btn-outline">Скасувати</button>
+          <button type="submit" class="btn-filled">Додати</button>
+        </div>
+      </form>
+
+      <span class="modal-close" id="closeAddStoreProductModal">&times;</span>
+    </div>
+  </div>
+
+  <!-- === МОДАЛКА ПРО ТОВАР У МАГАЗИНІ === -->
+  <div class="modal-overlay" id="viewStoreProductModal" style="display: none;">
+    <div class="modal">
+      <span class="modal-close" onclick="closeStoreProductModal()">&times;</span>
+      <h2 id="view-upc">UPC</h2>
+      <ul class="modal-list">
+        <li><strong>Назва товару:</strong> <span id="view-product-name"></span></li>
+        <li><strong>Ціна (грн):</strong> <span id="view-price"></span></li>
+        <li><strong>Кількість:</strong> <span id="view-quantity"></span></li>
+        <li><strong>Акційний:</strong> <span id="view-promotional"></span></li>
+        <li><strong>Характеристики:</strong> <span id="view-characteristics"></span></li>
+      </ul>
+      <div class="modal-actions">
+        <button class="btn-outline" onclick="closeStoreProductModal()">Закрити</button>
+      </div>
     </div>
   </div>
 

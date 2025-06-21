@@ -1084,3 +1084,25 @@ body {
   border-color: #e27b8a;
   color: white;
 }
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.store-filter-btn {
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background-color: #e0e0e0;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.store-filter-btn.active {
+  background-color: #ef9a9a; /* як "неакційні" */
+  color: #000;
+}
+
