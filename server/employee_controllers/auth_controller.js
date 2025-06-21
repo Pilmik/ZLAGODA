@@ -3,9 +3,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {pool} = require("../models/db.js");
 
-const generateAccessToken = (id, roles) => {
+const generateAccessToken = (id, internal_id, roles) => {
     const payload = {
         id,
+        internal_id,
         roles
     }
     const secret = process.env.JWT_SECRET
@@ -32,7 +33,7 @@ class AuthController{
             if (!valid_password) {
                 return res.status(400).json({ message: "Неправильний пароль" });
             }
-            const token = generateAccessToken(user.display_id, user.empl_role)
+            const token = generateAccessToken(user.display_id, user.internal_id, user.empl_role)
             return res.json({token})
         } catch (e) {
             console.log(e)
