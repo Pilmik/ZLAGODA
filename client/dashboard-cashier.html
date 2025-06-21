@@ -16,9 +16,9 @@
       </div>
       <nav class="sidebar-nav">
         <a href="#" class="nav-link active" data-section="home"><i class="fi fi-rr-home"></i><span>Головна</span></a>
+        <a href="#" class="nav-link" data-section="sale"><i class="fi fi-rr-credit-card"></i><span>Продаж товару</span></a>
         <a href="#" class="nav-link" data-section="products"><i class="fi fi-rr-box"></i><span>Товари</span></a>
         <a href="#" class="nav-link" data-section="store_products"><i class="fi fi-rr-store-alt"></i><span>Товари в магазині</span></a>
-        <a href="#" class="nav-link" data-section="sale"><i class="fi fi-rr-credit-card"></i><span>Продаж товару</span></a>
         <a href="#" class="nav-link" data-section="clients"><i class="fi fi-rr-users-alt"></i><span>Клієнти</span></a>
         <a href="#" class="nav-link" data-section="receipts"><i class="fi fi-rr-receipt"></i><span>Чеки</span></a>
         <a href="#" class="nav-link" data-section="profile"><i class="fi fi-rr-user"></i><span>Профіль</span></a>
@@ -221,6 +221,59 @@
           <div id="receipt-details" class="receipt-card"></div>
         </div>
       </div>
+
+      <!-- КЛІЄНТИ -->
+      <div id="clients" class="section" style="display: none;">
+        <div class="product-panel">
+          <div class="product-panel-top">
+            <h2 class="products-count clients-count">Усього знайдено: 0</h2>
+            <div class="client-search-filter">
+              <input type="text" placeholder="Пошук за прізвищем або телефоном" class="client-search-input" />
+              <select class="client-percent-filter">
+                <option value="">Усі</option>
+                <option value="3">3%</option>
+                <option value="5">5%</option>
+                <option value="8">8%</option>
+              </select>
+              <button class="client-search-btn">Пошук</button>
+            </div>
+          </div>
+
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th>Номер картки</th>
+                <th>Прізвище</th>
+                <th>Імʼя</th>
+                <th>Знижка (%)</th>
+              </tr>
+            </thead>
+            <tbody id="clients-table-body"></tbody>
+          </table>
+
+          <div class="product-actions">
+            <button class="client-report-btn">Сформувати звіт</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- === МОДАЛКА ПРО КЛІЄНТА === -->
+<div class="modal-overlay" id="viewClientModal" style="display: none;">
+  <div class="modal">
+    <span class="modal-close" onclick="closeClientModal()">&times;</span>
+    <h2 id="view-client-name">Імʼя та прізвище</h2>
+    <ul class="modal-list">
+      <li><strong>Номер картки:</strong> <span id="view-card-number"></span></li>
+      <li><strong>Телефон:</strong> <span id="view-phone"></span></li>
+      <li><strong>Адреса:</strong> <span id="view-address"></span></li>
+      <li><strong>Знижка:</strong> <span id="view-percent"></span>%</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="btn-filled" onclick="closeClientModal()">Закрити</button>
+    </div>
+  </div>
+</div>
+
 
       <div class="modal-overlay" id="productModal" style="display: none;">
         <div class="modal">
