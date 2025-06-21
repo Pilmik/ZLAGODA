@@ -35,6 +35,7 @@ links.forEach(link => {
       if (sectionId === "store_products") fetchStoreProducts();
       if (sectionId === "sale") initSaleSection();
       if (sectionId === "receipts") {initReceiptsSection(); fetchTodayReceipts();}
+      if (sectionId === "clients") fetchClients();
     }
   });
 });
@@ -397,7 +398,7 @@ async function confirmSale() {
 
   const payload = JSON.parse(atob(token.split(".")[1]));
   const saleData = {
-    employee_id: payload.internal_id || "00000000-0000-1000-8000-000000000000", // Fallback UUID
+    employee_id: payload.internal_id || "00000000-0000-1000-8000-000000000000", 
     card_number: customerCard || null,
     items: cart.map(item => ({
       upc: item.upc,
@@ -439,6 +440,108 @@ function updateSaleButtonState() {
   const saleConfirmBtn = document.getElementById("sale-confirm-btn");
   saleConfirmBtn.disabled = cart.length === 0;
 }
+
+// ===================== КЛІЄНТИ =====================
+const clientsTableBody = document.getElementById("clients-table-body");
+const clientsCount = document.querySelector(".clients-count");
+const clientSearchInput = document.querySelector(".client-search-input");
+const clientPercentFilter = document.querySelector(".client-percent-filter");
+const clientSearchBtn = document.querySelector(".client-search-btn");
+
+clientSearchBtn.addEventListener("click", fetchClients);
+
+async function fetchClients() {
+  const search = clientSearchInput.value.trim();
+  const percent = clientPercentFilter.value;
+
+  let url = "/dashboard-cashier/customers";
+  const params = [];
+
+  if (search) params.push(`search=${encodeURIComponent(search)}`);
+  if (percent) params.push(`percent=${percent}`);
+
+  if (params.length > 0) url += `?${params.join("&")}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await response.json();
+
+    renderClients(data.clients || []);
+    clientsCount.textContent = `Усього знайдено: ${data.clients?.length || 0}`;
+  } catch (err) {
+    console.error("Помилка завантаження клієнтів:", err.message);
+    clientsTableBody.innerHTML = `<tr><td colspan="4">Помилка завантаження</td></tr>`;
+    clientsCount.textContent = `Усього знайдено: 0`;
+  }
+}
+
+function renderClients(clients) {
+  clientsTableBody.innerHTML = "";
+
+  if (!clients || clients.length === 0) {
+    clientsTableBody.innerHTML = `<tr><td colspan="4">Клієнтів не знайдено</td></tr>`;
+    return;
+  }
+
+  for (const c of clients) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${c.card_number}</td>
+      <td>${c.cust_surname}</td>
+      <td>${c.cust_name}</td>
+      <td>${c.percent}</td>
+    `;
+    clientsTableBody.appendChild(row);
+  }
+}
+
+function renderClients(clients) {
+  clientsTableBody.innerHTML = "";
+
+  if (!clients || clients.length === 0) {
+    clientsTableBody.innerHTML = `<tr><td colspan="4">Клієнтів не знайдено</td></tr>`;
+    return;
+  }
+
+  for (const c of clients) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${c.card_number}</td>
+      <td>${c.cust_surname}</td>
+      <td>${c.cust_name}</td>
+      <td>${c.percent}</td>
+    `;
+    row.addEventListener("click", () => openClientModal(c.card_number));
+    clientsTableBody.appendChild(row);
+  }
+}
+
+async function openClientModal(cardNumber) {
+  try {
+    const res = await fetch(`/dashboard-cashier/customers/${cardNumber}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const c = await res.json();
+
+    document.getElementById("view-client-name").textContent = `${c.cust_name} ${c.cust_surname}`;
+    document.getElementById("view-card-number").textContent = c.card_number;
+    document.getElementById("view-phone").textContent = c.phone_number || "Немає";
+    document.getElementById("view-address").textContent = c.city + ", " + c.street || "Немає";
+    document.getElementById("view-percent").textContent = c.percent;
+
+    document.getElementById("viewClientModal").style.display = "flex";
+  } catch (err) {
+    alert("Не вдалося завантажити клієнта");
+    console.error(err.message);
+  }
+}
+
+function closeClientModal() {
+  document.getElementById("viewClientModal").style.display = "none";
+}
+
 
 // Receipts Section
 function initReceiptsSection() {
