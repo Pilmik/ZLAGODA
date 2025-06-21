@@ -113,6 +113,42 @@
           </div>
         </div>
       </div>
+      <section id="sale" class="section">
+        <h2>Продаж товару</h2>
+        <div class="sale-container">
+          <div class="sale-search">
+            <input type="text" id="sale-search-input" placeholder="UPC або назва товару">
+            <button id="sale-search-btn">Пошук</button>
+          </div>
+          <div id="sale-product-details" class="sale-product-details"></div>
+          <div class="sale-cart">
+            <h3>Кошик</h3>
+            <table class="cart-table">
+              <thead>
+                <tr>
+                  <th>UPC</th>
+                  <th>Назва</th>
+                  <th>Ціна (грн)</th>
+                  <th>Кількість</th>
+                  <th>Сума</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="cart-table-body"></tbody>
+            </table>
+            <div class="cart-total">
+              <span>Загальна сума: <span id="cart-total-sum">0.00</span> грн</span>
+            </div>
+          </div>
+          <div class="sale-customer">
+            <h3>Клієнт</h3>
+            <input type="text" id="customer-card-input" placeholder="Номер картки або телефон">
+            <button id="customer-search-btn">Перевірити</button>
+            <div id="customer-details"></div>
+          </div>
+          <button id="sale-confirm-btn" class="sale-confirm-btn" disabled>Продати</button>
+        </div>
+      </section>
 
       <div class="modal-overlay" id="productModal" style="display: none;">
         <div class="modal">
