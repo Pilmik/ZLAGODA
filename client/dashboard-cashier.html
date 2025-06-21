@@ -113,75 +113,42 @@
           </div>
         </div>
       </div>
-            <!-- ============= ПРОДАЖ ТОВАРІВ ============= -->
-<div id="sale" class="section" style="display: none;">
-  <div class="product-panel">
-    <div class="product-panel-top">
-      <h2 class="products-count">Продаж товару</h2>
-    </div>
 
-    <!-- Контейнер для пошуку товару та клієнта -->
-    <div class="sale-top-group">
-      <!-- Блок товару -->
-      <div class="sale-block">
-        <h3 class="panel-title">Товар</h3>
-        <div class="product-search-filter">
-          <input type="text" id="sale-search-input" class="product-search" placeholder="UPC або назва товару" />
-          <button id="sale-search-btn" class="product-search-btn">Пошук</button>
-        </div>
-        <div id="sale-product-details" class="product-details-block"></div>
-      </div>
-
-      <!-- Блок клієнта -->
-      <div class="sale-block">
-        <h3 class="panel-title">Клієнт</h3>
-        <div class="client-search-filter">
-          <input type="text" id="customer-card-input" class="client-search" placeholder="Номер картки або телефон" />
-          <button id="customer-search-btn" class="client-search-btn">Перевірити</button>
-        </div>
-        <!-- Блок з даними клієнта у стилі товару -->
-        <div id="customer-details" class="product-details-block"></div>
-      </div>
-    </div>
-
-    <!-- Кошик -->
-    <div class="cart-panel">
-      <h3 class="panel-title">Кошик</h3>
-      <table class="product-table">
-        <thead>
-          <tr>
-            <th>UPC</th>
-            <th>Назва</th>
-            <th>Ціна (грн)</th>
-            <th>Кількість</th>
-            <th>Сума</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="cart-table-body"></tbody>
-      </table>
-      <div class="employee-pagination">
-        <span class="pagination-info">Загальна сума: <span id="cart-total-sum">0.00</span> грн</span>
-      </div>
-    </div>
-
-    <!-- Кнопка підтвердження -->
-    <div class="product-actions">
-      <button id="sale-confirm-btn" class="product-new-btn" disabled>Продати</button>
-    </div>
-  </div>
-</div>
-      <section id="sale" class="section">
-        <h2>Продаж товару</h2>
-        <div class="sale-container">
-          <div class="sale-search">
-            <input type="text" id="sale-search-input" placeholder="UPC або назва товару">
-            <button id="sale-search-btn">Пошук</button>
+      <!-- ============= ПРОДАЖ ТОВАРІВ ============= -->
+      <div id="sale" class="section" style="display: none;">
+        <div class="product-panel">
+          <div class="product-panel-top">
+            <h2 class="products-count">Продаж товару</h2>
           </div>
-          <div id="sale-product-details" class="sale-product-details"></div>
-          <div class="sale-cart">
-            <h3>Кошик</h3>
-            <table class="cart-table">
+
+          <!-- Контейнер для пошуку товару та клієнта -->
+          <div class="sale-top-group">
+            <!-- Блок товару -->
+            <div class="sale-block">
+              <h3 class="panel-title">Товар</h3>
+              <div class="product-search-filter">
+                <input type="text" id="sale-search-input" class="product-search" placeholder="UPC або назва товару" />
+                <button id="sale-search-btn" class="product-search-btn">Пошук</button>
+              </div>
+              <div id="sale-product-details" class="product-details-block"></div>
+            </div>
+
+            <!-- Блок клієнта -->
+            <div class="sale-block">
+              <h3 class="panel-title">Клієнт</h3>
+              <div class="client-search-filter">
+                <input type="text" id="customer-card-input" class="client-search" placeholder="Номер картки або телефон" />
+                <button id="customer-search-btn" class="client-search-btn">Перевірити</button>
+              </div>
+              <!-- Блок з даними клієнта у стилі товару -->
+              <div id="customer-details" class="product-details-block"></div>
+            </div>
+          </div>
+
+          <!-- Кошик -->
+          <div class="cart-panel">
+            <h3 class="panel-title">Кошик</h3>
+            <table class="product-table">
               <thead>
                 <tr>
                   <th>UPC</th>
@@ -194,36 +161,45 @@
               </thead>
               <tbody id="cart-table-body"></tbody>
             </table>
-            <div class="cart-total">
-              <span>Загальна сума: <span id="cart-total-sum">0.00</span> грн</span>
+            <div class="employee-pagination">
+              <span class="pagination-info">Загальна сума: <span id="cart-total-sum">0.00</span> грн</span>
             </div>
           </div>
-          <div class="sale-customer">
-            <h3>Клієнт</h3>
-            <input type="text" id="customer-card-input" placeholder="Номер картки або телефон">
-            <button id="customer-search-btn">Перевірити</button>
-            <div id="customer-details"></div>
+
+          <!-- Кнопка підтвердження -->
+          <div class="product-actions">
+            <button id="sale-confirm-btn" class="product-new-btn" disabled>Продати</button>
           </div>
-          <button id="sale-confirm-btn" class="sale-confirm-btn" disabled>Продати</button>
         </div>
-      </section>
-      <section id="receipts" class="section">
-        <h2>Чеки</h2>
-        <div class="table-container">
-          <div class="table-header">
-            <span class="receipts-count">Усього знайдено: 0</span>
-            <div class="search-container">
-              <label>Період з: <input type="date" id="receipts-date-start"></label>
-              <label>до: <input type="date" id="receipts-date-end"></label>
-              <button id="receipts-filter-btn">Фільтрувати</button>
-              <button id="receipts-today-btn">Сьогодні</button>
+      </div>
+
+      <div id="receipts" class="section" style="display: none;">
+        <div class="product-panel">
+          <div class="product-panel-top">
+            <h2 class="products-count receipts-count">Чеки</h2>
+          </div>
+
+          <!-- ФІЛЬТРИ -->
+          <div class="product-panel-top" style="flex-direction: column; gap: 14px;">
+            <div class="product-search-filter" style="flex-wrap: wrap; gap: 12px;">
+              <label>Період з:
+                <input type="date" id="receipts-date-start" class="product-category-filter" />
+              </label>
+              <label>до:
+                <input type="date" id="receipts-date-end" class="product-category-filter" />
+              </label>
+              <button id="receipts-filter-btn" class="product-search-btn">Фільтрувати</button>
+              <button id="receipts-today-btn" class="product-search-btn">Сьогодні</button>
             </div>
-            <div class="search-container">
-              <input type="text" id="receipts-search-input" placeholder="Номер чеку">
-              <button id="receipts-search-btn">Пошук</button>
+
+            <div class="product-search-filter" style="flex-wrap: wrap; gap: 12px;">
+              <input type="text" id="receipts-search-input" placeholder="Номер чеку" class="product-search" />
+              <button id="receipts-search-btn" class="product-search-btn">Пошук</button>
             </div>
           </div>
-          <table class="receipts-table">
+
+          <!-- ТАБЛИЦЯ ЧЕКІВ -->
+          <table class="product-table" style="margin-top: 20px;">
             <thead>
               <tr>
                 <th>Номер чеку</th>
@@ -235,12 +211,16 @@
             </thead>
             <tbody id="receipts-table-body"></tbody>
           </table>
-          <div class="total-sales">
-            <span>Загальна сума продажів: <span id="total-sales-sum">0.00</span> грн</span>
+
+          <!-- ПІДСУМОК -->
+          <div class="employee-pagination" style="margin-top: 10px;">
+            <span class="pagination-info">Загальна сума продажів: <span id="total-sales-sum">0.00</span> грн</span>
           </div>
+
+          <!-- ДЕТАЛІ -->
+          <div id="receipt-details" class="receipt-card"></div>
         </div>
-        <div id="receipt-details" class="receipt-details"></div>
-      </section>
+      </div>
 
       <div class="modal-overlay" id="productModal" style="display: none;">
         <div class="modal">
@@ -276,3 +256,4 @@
   <script src="./dashboard-cashier.js"></script>
 </body>
 </html>
+

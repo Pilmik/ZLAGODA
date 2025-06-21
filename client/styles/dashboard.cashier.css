@@ -1180,3 +1180,51 @@ body {
     padding: 24px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
   }
+
+  .receipt-card {
+  background-color: #fff;
+  padding: 24px 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+  margin-top: 30px;
+  font-size: 15px;
+  color: #132144;
+  line-height: 1.6;
+}
+
+.receipt-card h3 {
+  margin-top: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #132144;
+}
+
+.receipt-card .receipt-info p {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+.receipt-card h4 {
+  margin-top: 20px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #132144;
+}
+
+.receipt-card table {
+  margin-top: 10px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.receipt-card th, .receipt-card td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  text-align: left;
+}
+
+.receipt-card th {
+  background-color: #132144;
+  color: white;
+}
