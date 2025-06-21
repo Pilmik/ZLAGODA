@@ -304,6 +304,122 @@ class CashierController{
             return res.status(500).json({message: "Помилка сервера"})
         }      
     }
+
+    async saleProducts(req, res) {
+        const {employee_id, card_number, items} = req.body;
+
+        if (!employee_id || !items || !Array.isArray(items) || items.lenth === 0) {
+            return res.status(400).json({ message: 'Порожні employee_id або items' });
+        }
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(employee_id)) {
+            return res.status(400).json({ message: 'Некоректний employee_id формат' });
+        }
+        if (card_number && !uuidRegex.test(card_number)) {
+            return res.status(400).json({ message: 'Некоректний card_number формат' });
+        }
+
+        for (const item of items) {
+        if (!item.upc || !item.product_number) {
+            return res.status(400).json({ message: 'Кожен елемент має містити UPC та product_number' });
+        }
+        if (typeof item.product_number !== 'number' || item.product_number <= 0) {
+            return res.status(400).json({ message: 'product_number має бути додатнім цілим числом' });
+        }
+  
+        }
+        let client;
+        try {
+            client = await pool.connect();
+            await client.query('BEGIN');
+
+            const checkNumber = `CH${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            const receiptQuery = `
+                INSERT INTO Receipt (check_number, id_employee, card_number, print_date, sum_total, vat)
+                VALUES ($1, $2, $3, CURRENT_TIMESTAMP, 0.00, 0.00)
+                RETURNING check_number;
+            `;
+
+            const receiptValues = [checkNumber, employee_id, card_number || null];
+            const receiptResult = await client.query(receiptQuery, receiptValues);
+            const createdCheckNumber = receiptResult.rows[0].check_number;
+            
+            let percent = 0;
+            if (card_number) {
+                const percentQuery = `
+                    SELECT percent
+                    FROM Customer_Card
+                    WHERE card_number = $1
+                `;
+                const percentResult = await client.query(percentQuery, [card_number]);
+                if (percentResult.rows.length > 0) {
+                    percent = percentResult.rows[0].percent;
+                } else {
+                    return res.status(400).json({ message: `Покупець з card_number ${card_number} не знайдено` });
+                }
+            }
+
+            let totalSum = 0;
+            let totalVat = 0;
+            const vatRate = 0.20;
+
+            for (const item of items) {
+                const {upc, product_number} = item;
+
+                const productQuery = `
+                    SELECT products_number, selling_price
+                    FROM Store_Product
+                    WHERE upc = $1;
+                `
+                const productResult = await client.query(productQuery, [upc]);
+                if (productResult.rows.length === 0) {
+                    return res.status(400).json({ message: `Товар з UPC ${upc} не знайдено` });
+                }
+                const { products_number, selling_price } = productResult.rows[0];
+                if (products_number < product_number) {
+                    return res.status(400).json({ message: `Надмірна кількість для товару UPC ${upc}` });
+                }
+                const discountMultiplier = 1 - percent * 0.01;
+                const discountedPrice = selling_price * discountMultiplier;
+                const saleQuery = `
+                INSERT INTO Sale (UPC, check_number, product_number, selling_price)
+                VALUES ($1, $2, $3, $4)
+                `;
+                await client.query(saleQuery, [upc, createdCheckNumber, product_number, selling_price]);
+
+                const updateProductQuery = `
+                    UPDATE Store_Product
+                    SET products_number = products_number - $1
+                    WHERE UPC = $2
+                `;
+                await client.query(updateProductQuery, [product_number, upc]);
+
+                totalSum += product_number * discountedPrice;
+                totalVat += product_number * discountedPrice * vatRate;
+            }
+            const updateReceiptQuery = `
+                UPDATE Receipt
+                SET sum_total = $1,
+                    vat = $2
+                WHERE check_number = $3
+            `;
+            await client.query(updateReceiptQuery, [totalSum, totalVat, createdCheckNumber]);
+            await client.query('COMMIT');
+            res.status(200).json({ message: "Чек успышно створено!", 
+                check_number: createdCheckNumber, 
+                total_sum: totalSum, 
+                vat: totalVat });
+
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error processing sale:', err.message);
+            res.status(500).json({ error: err.message });
+        } finally {
+            client.release()
+        }
+    }
 }
 
 module.exports = new CashierController();

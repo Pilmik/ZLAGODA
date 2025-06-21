@@ -58,3 +58,24 @@ CREATE TABLE Store_Product(
     FOREIGN KEY (UPC_prom) REFERENCES Store_Product (UPC) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (id_product) REFERENCES Product (id_product) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+
+CREATE TABLE Sale(
+    UPC VARCHAR(13),
+    check_number VARCHAR(10),
+    PRIMARY KEY (UPC, check_number),
+    FOREIGN KEY (UPC) REFERENCES Store_Product (UPC) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (check_number) REFERENCES Receipt (check_number) ON DELETE CASCADE ON UPDATE CASCADE,
+    product_number INTEGER NOT NULL,
+    selling_price DECIMAL(13, 4) NOT NULL
+);
+
+CREATE TABLE Receipt(
+    check_number VARCHAR(10) PRIMARY KEY,
+    id_employee UUID NOT NULL,
+    card_number UUID NULL,
+    FOREIGN KEY (id_employee) REFERENCES Employee (internal_id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (card_number) REFERENCES Customer_Card (card_number) ON DELETE NO ACTION ON UPDATE CASCADE,
+    print_date TIMESTAMP NOT NULL,
+    sum_total DECIMAL(13, 4) NOT NULL,
+    vat DECIMAL(13, 4) NOT NULL
+);

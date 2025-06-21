@@ -18,6 +18,8 @@ router.get("/customers/:phone_number", authMiddleware, roleMiddleware(["CASHIER"
 router.post("/customers", authMiddleware, roleMiddleware(["CASHIER"]), controller.createCustomer)
 router.put("/customers", authMiddleware, roleMiddleware(["CASHIER"]), controller.updateCustomerInfo)
 
+router.post("/sale", authMiddleware, roleMiddleware(["CASHIER"]), controller.saleProducts)
+
 
 
 module.exports = router;
