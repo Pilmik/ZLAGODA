@@ -255,12 +255,12 @@ async function searchSaleProduct() {
 
     const product = products[0]; // Take first result
     productDetails.innerHTML = `
-      <p><strong>UPC:</strong> ${product.upc}</p>
-      <p><strong>Назва:</strong> ${product.product_name}</p>
-      <p><strong>Ціна:</strong> ${product.selling_price} грн</p>
-      <p><strong>Наявна кількість:</strong> ${product.products_number}</p>
-      <input type="number" id="sale-quantity" min="1" max="${product.products_number}" placeholder="Кількість">
-      <button id="add-to-cart-btn">Додати до кошика</button>
+    <p><strong>UPC:</strong> ${product.upc}</p>
+    <p><strong>Назва:</strong> ${product.product_name}</p>
+    <p><strong>Ціна:</strong> ${product.selling_price} грн</p>
+    <p><strong>Наявна кількість:</strong> ${product.products_number}</p>
+    <input type="number" id="sale-quantity" min="1" max="${product.products_number}" placeholder="Кількість" class="product-quantity-input" />
+    <button id="add-to-cart-btn" class="product-new-btn">Додати до кошика</button>
     `;
 
     document.getElementById("add-to-cart-btn").addEventListener("click", () => addToCart(product));
@@ -311,7 +311,7 @@ function renderCart() {
       <td>${item.selling_price}</td>
       <td>${item.product_number}</td>
       <td>${sum.toFixed(2)}</td>
-      <td><button class="remove-cart-item" data-index="${index}">Видалити</button></td>
+      <td><button class="remove-cart-item cart-remove-btn" data-index="${index}">Видалити</button></td>
     `;
     cartTableBody.appendChild(row);
   });
