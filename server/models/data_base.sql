@@ -61,7 +61,7 @@ CREATE TABLE Store_Product(
 
 CREATE TABLE Sale(
     UPC VARCHAR(13),
-    check_number VARCHAR(10),
+    check_number VARCHAR(15),
     PRIMARY KEY (UPC, check_number),
     FOREIGN KEY (UPC) REFERENCES Store_Product (UPC) ON DELETE NO ACTION ON UPDATE CASCADE,
     FOREIGN KEY (check_number) REFERENCES Receipt (check_number) ON DELETE CASCADE ON UPDATE CASCADE,

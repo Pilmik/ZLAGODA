@@ -207,8 +207,11 @@ class ManagerController{
                 return res.status(400).json({message: "Помилка видалення."})
             }
         return res.json({message: "Користувача " + display_id + " успішно видалено."})
-        }catch(e){
-            console.error("Помилка: " + e)
+        }catch(err){
+            console.error("Помилка видалення працівника:", err.stack);
+            if (err.code === '23503') {
+                return res.status(400).json({ message: "Працівник фігурує в чеках. Видалення неможливе, поки не мине 3 роки від створення чека." });
+            }
             return res.status(500).json({message: "Помилка сервера."})
         }
     }
@@ -372,7 +375,10 @@ class ManagerController{
 
             return res.status(200).json({ message: "Покупця успішно видалено." });
         } catch (err) {
-            console.error("Помилка видалення покупця:", err.stack);
+            console.error("Помилка видалення клієнта:", err.stack);
+            if (err.code === '23503') {
+                return res.status(400).json({ message: "Клієнт фігурує в чеках. Видалення неможливе, поки не мине 3 роки від створення чека." });
+            }
             return res.status(500).json({ message: "Помилка сервера." });
         }
     }

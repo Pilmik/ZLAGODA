@@ -750,6 +750,7 @@
   </div>
 
   <!-- === МОДАЛКА ПРО ТОВАР У МАГАЗИНІ === -->
+  </div>
   <div class="modal-overlay" id="viewStoreProductModal" style="display: none;">
     <div class="modal">
       <span class="modal-close" onclick="closeStoreProductModal()">&times;</span>
@@ -762,7 +763,8 @@
         <li><strong>Характеристики:</strong> <span id="view-characteristics"></span></li>
       </ul>
       <div class="modal-actions">
-        <button class="btn-outline" onclick="closeStoreProductModal()">Закрити</button>
+        <button class="btn-outline" id="">Видалити</button>
+        <button class="btn-filled" id="updateProduct">Редагувати</button>
       </div>
     </div>
   </div>

@@ -1102,7 +1102,7 @@ function openProductModal(prod) {
   const modal = document.getElementById("productModal");
   modal.querySelector("#productModalTitle").textContent = `ID: ${prod.id_product}`;
 
-  // Пошук назви категорії за номером
+  // // Пошук назви категорії за номером
   const cat = categories.find(c => c.category_number === prod.category_number);
   const categoryName = cat ? cat.category_name : "(невідомо)";
 
@@ -1246,8 +1246,6 @@ promoSwitch.addEventListener("change", () => {
 
 async function openStoreProductModal(upc) {
   // ВІДКРИВАЄМО МОДАЛКУ ОДРАЗУ!
-  document.getElementById("viewStoreProductModal").style.display = "flex";
-
   try {
     const res = await fetch(`/dashboard-manager/store_products/${upc}`, {
       headers: {
@@ -1266,6 +1264,7 @@ async function openStoreProductModal(upc) {
     document.getElementById("view-price").textContent = p.selling_price;
     document.getElementById("view-quantity").textContent = p.products_number;
     document.getElementById("view-promotional").textContent = p.promotional_product ? "Так" : "Ні";
+    document.getElementById("viewStoreProductModal").style.display = "flex";
   } catch (err) {
     console.error("Помилка відкриття товару:", err.message);
     alert("Не вдалося отримати інформацію про товар");
