@@ -38,5 +38,8 @@ router.post("/store_products", authMiddleware, roleMiddleware(["MANAGER"]), cont
 router.put("/store_products", authMiddleware, roleMiddleware(["MANAGER"]), controller.updateStoreProduct)
 router.delete("/store_products/:upc", authMiddleware, roleMiddleware(["MANAGER"]), controller.deleteStoreProduct)
 
+router.get("/receipts", authMiddleware, roleMiddleware(["MANAGER"]), controller.getAllReceipts)
+router.get("/receipts/:check_number", authMiddleware, roleMiddleware(["MANAGER"]), controller.getReceiptByNumber)
+
 
 module.exports = router;
